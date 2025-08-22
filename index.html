@@ -1,0 +1,331 @@
+<!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, orientation=landscape" />
+  <title>Football Score App</title>
+  <style>
+    :root { --bg-black:#000; --badge-red:#d92b2b; }
+    *{margin:0;padding:0;box-sizing:border-box}
+    html,body{width:100vw;height:100vh;overflow:hidden;background:var(--bg-black)}
+    body{display:flex;justify-content:center;align-items:center;font-family:Arial,sans-serif}.container{position:relative;width:100vw;height:100vh}
+
+/* ---------- Video ---------- */
+.video-frame{width:100%;height:100%;background:#000;overflow:hidden}
+.video-frame video{width:100%;height:100%;object-fit:cover}
+
+/* ---------- LIVE Badge ---------- */
+.live-badge{position:absolute;top:10px;right:20px;display:flex;align-items:center;gap:6px;background:var(--badge-red);color:#fff;padding:4px 10px;border-radius:6px;font-size:13px;font-weight:bold;z-index:20}
+.live-dot{width:10px;height:10px;border-radius:50%;background:#fff;animation:pulse 1.2s infinite}
+@keyframes pulse{0%{transform:scale(1);opacity:1}50%{transform:scale(1.4);opacity:.6}100%{transform:scale(1);opacity:1}}
+
+/* ---------- Score Bar ---------- */
+.score-bar{position:absolute;top:15px;left:50%;transform:translateX(-50%);background:linear-gradient(to bottom,#d02020,#a00000);color:#fff;border-radius:10px;padding:8px 20px;font-size:14px;text-align:center;z-index:20;display:flex;align-items:center;gap:18px;box-shadow:0 2px 6px rgba(0,0,0,.4)}
+.team-label{font-size:14px;text-transform:uppercase;font-weight:bold;user-select:none}
+.score{font-size:28px;font-weight:900;cursor:pointer;user-select:none;line-height:1}
+.timer{font-size:20px;font-weight:bold;background:#111;padding:4px 12px;border-radius:4px;color:#0f0;font-family:"Courier New",monospace;cursor:pointer;user-select:none;line-height:1}
+
+/* ---------- Logos ---------- */
+.team-logo{height:44px;width:auto;object-fit:contain;filter:drop-shadow(0 0 3px #fff) drop-shadow(0 0 6px #fff)}
+
+/* ---------- Overlay Screens ---------- */
+.overlay-screen{position:absolute;inset:0;display:none;justify-content:center;align-items:center;background:rgba(0,0,0,.7) center/cover no-repeat;z-index:15}
+.overlay-screen.show{display:flex}
+
+.overlay-card{background:rgba(255,255,255,.1);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);padding:20px 40px;border-radius:16px;text-align:center;color:#fff;border:1px solid rgba(255,255,255,.3);box-shadow:0 8px 24px rgba(0,0,0,.6),0 0 12px rgba(255,255,255,.15);transform:scale(.9);transition:transform .6s ease,opacity .6s ease}
+.overlay-screen.show .overlay-card{transform:scale(1)}
+
+.overlay-card h2{font-size:32px;margin-bottom:20px;text-transform:uppercase;font-weight:900;letter-spacing:2px;background:linear-gradient(90deg,#ffd700,#ff8c00,#ffd700);background-size:200% auto;color:transparent;-webkit-background-clip:text;background-clip:text;text-shadow:0 0 8px rgba(255,215,0,.8),0 0 16px rgba(255,140,0,.6);animation:shine 3s linear infinite}
+@keyframes shine{0%{background-position:0% center}100%{background-position:200% center}}
+
+.overlay-teams{display:flex;justify-content:center;align-items:center;gap:40px}
+.overlay-team{display:flex;flex-direction:column;align-items:center;color:#fff;font-weight:bold}
+.overlay-team img{width:70px;height:70px;object-fit:contain;margin-bottom:8px}
+.overlay-score{font-size:42px;font-weight:900;margin:0 10px}
+
+/* ---------- Coming Soon Card ---------- */
+.coming-card{padding:24px 50px;}
+/* Height 20% less than normal: squash vertically only when visible */
+.overlay-screen.show .overlay-card.coming-card{transform:scale(1,.8)!important}
+.league-line{font-size:16px;font-weight:700;margin-bottom:6px}
+.date-line{font-size:14px;opacity:.9;margin-bottom:14px}
+.countdown-wrap{margin-top:16px;display:flex;justify-content:center}
+#countdownCanvas{background:transparent;width:160px;height:160px}
+/* hide external countdown text holder to keep DOM same but show time inside circle */
+#countdownText{display:none}
+
+/* ---------- Settings ---------- */
+.settings-btn{position:absolute;bottom:15px;right:15px;font-size:22px;background:#fff;border-radius:50%;padding:6px 10px;cursor:pointer;z-index:30;user-select:none}
+.settings-panel{position:absolute;top:10%;left:50%;transform:translateX(-50%);width:90%;max-width:450px;background:#fff;padding:14px;border-radius:10px;display:none;z-index:40;max-height:80vh;overflow-y:auto}
+.settings-panel input{width:100%;margin:6px 0 10px}
+.close-btn{position:absolute;top:6px;right:10px;cursor:pointer;font-size:20px;user-select:none}
+
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Video -->
+    <div class="video-frame" id="videoFrame">
+      <video id="gameVideo" autoplay loop muted playsinline>
+        <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
+      </video>
+    </div><!-- Live badge & Score bar -->
+<div class="live-badge"><div class="live-dot"></div>LIVE</div>
+<div class="score-bar">
+  <img id="logoA" src="https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg" class="team-logo" />
+  <div class="team-label" id="teamALabel">HOME TEAM</div>
+  <div class="score"><span id="scoreA">0</span></div>
+  <div class="timer" id="timer">00:00</div>
+  <div class="score"><span id="scoreB">0</span></div>
+  <div class="team-label" id="teamBLabel">AWAY TEAM</div>
+  <img id="logoB" src="https://upload.wikimedia.org/wikipedia/en/4/47/FC_Barcelona_%28crest%29.svg" class="team-logo" />
+</div>
+
+<!-- Half/Full Overlay (original) -->
+<div class="overlay-screen" id="overlayScreen">
+  <div class="overlay-card" id="hfCard">
+    <h2 id="overlayTitle">HALF TIME</h2>
+    <div class="overlay-teams">
+      <div class="overlay-team">
+        <img id="overlayLogoA" src="">
+        <div id="overlayNameA"></div>
+      </div>
+      <div class="overlay-score" id="overlayScore"></div>
+      <div class="overlay-team">
+        <img id="overlayLogoB" src="">
+        <div id="overlayNameB"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Coming Soon Overlay (separate) -->
+<div class="overlay-screen" id="comingScreen">
+  <div class="overlay-card coming-card" id="comingCard">
+    <div class="league-line" id="comingLeague">LEAGUE NAME</div>
+    <div class="date-line" id="comingDate">DATE</div>
+    <h2>COMING SOON</h2>
+    <div class="overlay-teams">
+      <div class="overlay-team">
+        <img id="comingLogoA" src="">
+        <div id="comingNameA"></div>
+      </div>
+      <div class="overlay-score">VS</div>
+      <div class="overlay-team">
+        <img id="comingLogoB" src="">
+        <div id="comingNameB"></div>
+      </div>
+    </div>
+    <div class="countdown-wrap">
+      <div style="display:flex;flex-direction:column;align-items:center;">
+        <canvas id="countdownCanvas" width="160" height="160"></canvas>
+        <div id="countdownText">00:00</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Music Player -->
+<audio id="bgMusic" loop></audio>
+
+<!-- Settings -->
+<div class="settings-btn" id="openSettingsBtn">⚙️</div>
+<div class="settings-panel" id="settingsPanel">
+  <div class="close-btn" id="closeSettingsBtn">×</div>
+  <h3>Settings</h3>
+  <label>Team A Name</label><input type="text" id="inputTeamA" />
+  <label>Team B Name</label><input type="text" id="inputTeamB" />
+  <label>Team A Logo</label><input type="file" id="inputLogoA" accept="image/*" />
+  <label>Team B Logo</label><input type="file" id="inputLogoB" accept="image/*" />
+  <label>Gameplay Video</label><input type="file" id="inputVideo" accept="video/*" />
+  <label>Background Music</label><input type="file" id="inputMusic" accept="audio/*" />
+  <label>Overlay Background (Half + Full)</label><input type="file" id="inputOverlayBg" accept="image/*" />
+  <label>Set Timer Start (minutes)</label><input type="number" id="inputTimerMin" min="0" value="0" />
+  <label>Set Timer Start (seconds)</label><input type="number" id="inputTimerSec" min="0" max="59" value="0" />
+  <label>League Name</label><input type="text" id="inputLeague" placeholder="UEFA Champions League" />
+  <label>Match Date</label><input type="date" id="inputDate" />
+  <label>Countdown Minutes</label><input type="number" id="inputCountdownMin" min="0" value="0" />
+  <label>Countdown Seconds</label><input type="number" id="inputCountdownSec" min="0" max="59" value="30" />
+  <button id="applyBtn">Apply</button>
+</div>
+
+  </div>  <script>
+    // -------- Core state
+    let scoreA=0, scoreB=0, timer=0, clicks=0, interval=null;
+    let overlayBg=null;
+
+    // Coming Soon state
+    let countdownTotal=0, countdownRemaining=0, countdownInterval=null;
+
+    const a=document.getElementById('scoreA'),
+          b=document.getElementById('scoreB'),
+          t=document.getElementById('timer'),
+          overlay=document.getElementById('overlayScreen'),
+          logoA=document.getElementById('logoA'),
+          logoB=document.getElementById('logoB'),
+          comingScreen=document.getElementById('comingScreen');
+
+    // Score clicks (same behaviour)
+    a.onclick=()=>{ scoreA++; a.textContent=scoreA; };
+    b.onclick=()=>{ scoreB++; b.textContent=scoreB; };
+
+    // ---------- Overlay (Half/Full)
+    function showOverlay(title, bg){
+      document.getElementById('overlayTitle').textContent=title;
+      document.getElementById('overlayLogoA').src=logoA.src;
+      document.getElementById('overlayLogoB').src=logoB.src;
+      document.getElementById('overlayNameA').textContent=document.getElementById('teamALabel').textContent;
+      document.getElementById('overlayNameB').textContent=document.getElementById('teamBLabel').textContent;
+      document.getElementById('overlayScore').textContent=`${scoreA} - ${scoreB}`;
+      overlay.classList.add('show');
+      overlay.style.background = bg ? `url(${bg}) center/cover no-repeat` : 'rgba(0,0,0,0.7)';
+    }
+
+    // ---------- Coming Soon (canvas countdown)
+    const cdCanvas=document.getElementById('countdownCanvas');
+    const ctx=cdCanvas.getContext('2d');
+
+    function drawCountdown(){
+      const total=Math.max(countdownTotal,1); // avoid 0/0
+      const remaining=Math.max(countdownRemaining,0);
+      const percent=remaining/total; // remaining portion
+      const cx=cdCanvas.width/2, cy=cdCanvas.height/2;
+      const r=58; // smaller circle radius
+
+      ctx.clearRect(0,0,cdCanvas.width,cdCanvas.height);
+
+      // background ring
+      ctx.beginPath();
+      ctx.arc(cx,cy,r,0,Math.PI*2);
+      ctx.strokeStyle='rgba(255,255,255,0.25)';
+      ctx.lineWidth=10;
+      ctx.stroke();
+
+      // red remaining arc
+      ctx.beginPath();
+      ctx.arc(cx,cy,r,-Math.PI/2,(Math.PI*2*percent)-Math.PI/2);
+      ctx.strokeStyle='#d92b2b';
+      ctx.lineWidth=10;
+      ctx.lineCap='round';
+      ctx.stroke();
+
+      // time text inside the circle
+      const m=Math.floor(remaining/60), s=remaining%60;
+      const txt=`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+      ctx.fillStyle='#ffffff';
+      ctx.font='bold 28px "Courier New", monospace';
+      ctx.textAlign='center';
+      ctx.textBaseline='middle';
+      ctx.fillText(txt, cx, cy);
+    }
+
+    function showComing(){
+      // Fill teams/logos
+      document.getElementById('comingLogoA').src=logoA.src;
+      document.getElementById('comingLogoB').src=logoB.src;
+      document.getElementById('comingNameA').textContent=document.getElementById('teamALabel').textContent;
+      document.getElementById('comingNameB').textContent=document.getElementById('teamBLabel').textContent;
+
+      // League & Date
+      const league=document.getElementById('inputLeague').value.trim()||'LEAGUE';
+      const dateVal=document.getElementById('inputDate').value||'DATE TBD';
+      document.getElementById('comingLeague').textContent=league;
+      document.getElementById('comingDate').textContent=dateVal;
+
+      comingScreen.classList.add('show'); // perfectly centered by flex
+      drawCountdown();
+
+      if(countdownInterval) clearInterval(countdownInterval);
+      countdownInterval=setInterval(()=>{
+        if(countdownRemaining>0){
+          countdownRemaining--; drawCountdown();
+        } else { clearInterval(countdownInterval); countdownInterval=null; }
+      },1000);
+    }
+
+    // ---------- Timer click flow (manual)
+    t.onclick=()=>{
+      clicks++;
+      if(interval){ clearInterval(interval); interval=null; }
+      if(countdownInterval){ clearInterval(countdownInterval); countdownInterval=null; }
+
+      if(clicks===1){ // Coming Soon card
+        showComing();
+      }
+      else if(clicks===2){ // Start match from 00:00
+        comingScreen.classList.remove('show');
+        timer=0; t.textContent='00:00';
+        interval=setInterval(()=>{
+          timer++;
+          t.textContent=`${String(Math.floor(timer/60)).padStart(2,'0')}:${String(timer%60).padStart(2,'0')}`;
+        },1000);
+      }
+      else if(clicks===3){ // Half Time
+        showOverlay('HALF TIME', overlayBg);
+      }
+      else if(clicks===4){ // 2nd Half (continue)
+        overlay.classList.remove('show');
+        interval=setInterval(()=>{
+          timer++;
+          t.textContent=`${String(Math.floor(timer/60)).padStart(2,'0')}:${String(timer%60).padStart(2,'0')}`;
+        },1000);
+      }
+      else if(clicks===5){ // Full Time
+        showOverlay('FULL TIME', overlayBg);
+      }
+      else if(clicks===6){ // Reset
+        clicks=0; timer=0; scoreA=0; scoreB=0;
+        a.textContent=0; b.textContent=0; t.textContent='00:00';
+        overlay.classList.remove('show');
+        comingScreen.classList.remove('show');
+      }
+    };
+
+    // ---------- Settings panel (same + countdown fields)
+    const openBtn=document.getElementById('openSettingsBtn'),
+          closeBtn=document.getElementById('closeSettingsBtn'),
+          panel=document.getElementById('settingsPanel');
+
+    openBtn.onclick=()=>panel.style.display='block';
+    closeBtn.onclick=()=>panel.style.display='none';
+
+    document.getElementById('applyBtn').onclick=()=>{
+      // Names
+      const nameA=document.getElementById('inputTeamA').value.trim();
+      const nameB=document.getElementById('inputTeamB').value.trim();
+      document.getElementById('teamALabel').textContent=nameA||'HOME TEAM';
+      document.getElementById('teamBLabel').textContent=nameB||'AWAY TEAM';
+
+      // Logos
+      const logoAFile=document.getElementById('inputLogoA').files[0];
+      if(logoAFile) document.getElementById('logoA').src=URL.createObjectURL(logoAFile);
+      const logoBFile=document.getElementById('inputLogoB').files[0];
+      if(logoBFile) document.getElementById('logoB').src=URL.createObjectURL(logoBFile);
+
+      // Video
+      const vid=document.getElementById('inputVideo').files[0];
+      if(vid) document.getElementById('gameVideo').src=URL.createObjectURL(vid);
+
+      // Music
+      const music=document.getElementById('inputMusic').files[0];
+      if(music){ const audio=document.getElementById('bgMusic'); audio.src=URL.createObjectURL(music); audio.muted=false; audio.play().catch(()=>{}); }
+
+      // Overlay background
+      const overlayFile=document.getElementById('inputOverlayBg').files[0];
+      if(overlayFile) overlayBg=URL.createObjectURL(overlayFile);
+
+      // Timer initial display (same as before)
+      const min=parseInt(document.getElementById('inputTimerMin').value)||0;
+      const sec=parseInt(document.getElementById('inputTimerSec').value)||0;
+      timer=min*60+sec;
+      document.getElementById('timer').textContent=`${String(min).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+
+      // Countdown setup
+      const cMin=parseInt(document.getElementById('inputCountdownMin').value)||0;
+      const cSec=parseInt(document.getElementById('inputCountdownSec').value)||0;
+      countdownTotal=Math.max(0,cMin*60+cSec);
+      countdownRemaining=countdownTotal;
+
+      panel.style.display='none';
+    };
+  </script></body>
+</html>

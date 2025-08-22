@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, orientation=landscape" />
@@ -59,6 +60,67 @@
 .settings-panel input{width:100%;margin:6px 0 10px}
 .close-btn{position:absolute;top:6px;right:10px;cursor:pointer;font-size:20px;user-select:none}
 
+/* --- Mobile-specific tweaks: Coming Soon smaller in landscape & Settings scrollable in portrait --- */
+
+/* 1) Landscape phones: coming card ko vertically squash + upar gap (score-bar ke liye) */
+@media (orientation: landscape) and (max-height: 700px) {
+  /* push the coming card a bit lower so the top score bar stays clear */
+  #comingScreen {
+    align-items: flex-start;
+    justify-content: flex-start;
+    padding-top: 56px; /* gap between top (score bar) and the card */
+  }
+
+  /* reduce visual height of the coming-card but keep same look */
+  .overlay-card.coming-card {
+    transform: scale(1, 0.80) !important; /* slightly more vertical squash */
+    max-height: 62vh;                      /* height cap relative to viewport */
+    width: calc(100% - 48px);
+    margin: 0 auto;
+    padding: 16px 28px;
+    box-sizing: border-box;
+  }
+
+  /* slightly smaller logos + countdown so content doesn't overflow */
+  .overlay-card.coming-card .overlay-team img { width: 60px; height: 60px; }
+  #countdownCanvas { width: 140px; height: 140px; }
+}
+
+/* Extra-tight devices (very short height) — make it a bit smaller still */
+@media (orientation: landscape) and (max-height: 480px) {
+  .overlay-card.coming-card {
+    transform: scale(1, 0.74) !important;
+    max-height: 58vh;
+    padding: 12px 20px;
+  }
+  .overlay-score { font-size: 36px; }
+  .overlay-card.coming-card h2 { font-size: 24px; }
+}
+
+/* 2) Portrait mobile: settings panel should be fully scrollable and touch-friendly */
+@media (orientation: portrait) and (max-width: 700px) {
+  .settings-panel{
+    position: fixed;              /* keep it above everything and not clipped */
+    top: 6vh;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 94%;
+    max-width: 420px;
+    max-height: 88vh;            /* internal scrolling area */
+    overflow-y: auto;            /* enable scrolling */
+    -webkit-overflow-scrolling: touch; /* smooth native-like scrolling on iOS/Android */
+    padding: 16px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.45);
+  }
+
+  /* make inputs more roomy on small screens */
+  .settings-panel input{ width:100%; box-sizing:border-box; }
+
+  /* ensure close button stays clickable above scroll content */
+  .settings-panel .close-btn { z-index: 60; position: absolute; right: 10px; top: 6px; }
+}
+
+/* -------------------------------------------------------------------------------------------------------------- */
   </style>
 </head>
 <body>

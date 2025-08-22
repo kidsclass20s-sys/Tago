@@ -8,6 +8,8 @@
     :root { --bg-black:#000; --badge-red:#d92b2b; }
     *{margin:0;padding:0;box-sizing:border-box}
     html,body{width:100vw;height:100vh;overflow:hidden;background:var(--bg-black)}
+    /* contain overscroll so the settings panel can scroll independently on mobile */
+    html, body { overscroll-behavior: contain; -webkit-tap-highlight-color: transparent; }
     body{display:flex;justify-content:center;align-items:center;font-family:Arial,sans-serif}.container{position:relative;width:100vw;height:100vh}
 
 /* ---------- Video ---------- */
@@ -43,42 +45,66 @@
 .overlay-team img{width:70px;height:70px;object-fit:contain;margin-bottom:8px}
 .overlay-score{font-size:42px;font-weight:900;margin:0 10px}
 
-/* ---------- Coming Soon Card ---------- */
-.coming-card{padding:24px 50px;}
-/* Height 20% less than normal: squash vertically only when visible */
-.overlay-screen.show .overlay-card.coming-card{transform:scale(1,.8)!important}
-.league-line{font-size:16px;font-weight:700;margin-bottom:6px}
-.date-line{font-size:14px;opacity:.9;margin-bottom:14px}
-.countdown-wrap{margin-top:16px;display:flex;justify-content:center}
-#countdownCanvas{background:transparent;width:160px;height:160px}
+/* ---------- Coming Soon Card (updated layout) ---------- */
+.coming-card{padding:24px 50px; position:relative; box-sizing:border-box;}
+/* default: slightly narrower width and taller card */
+.overlay-card.coming-card{
+  width: calc(100% - 96px);
+  max-width: 560px;
+  min-height: 360px;
+  padding: 26px 36px;
+}
+
+/* When the coming overlay shows, give it slightly taller presentation */
+.overlay-screen.show .overlay-card.coming-card{
+  transform: scale(1) !important;
+}
+
+/* Top-left meta (league | date) */
+.meta-line{
+  position: absolute;
+  left: 20px;
+  top: 14px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-size:14px;
+  font-weight:700;
+  color:#fff;
+  opacity:.95;
+  user-select:none;
+}
+.meta-line .sep{opacity:0.9;padding:0 6px}
+
+/* countdown now sits between heading and teams */
+.countdown-wrap{margin-top:8px;display:flex;justify-content:center;align-items:center}
+#countdownCanvas{background:transparent;width:160px;height:160px;display:block;}
+
 /* hide external countdown text holder to keep DOM same but show time inside circle */
 #countdownText{display:none}
 
 /* ---------- Settings ---------- */
-.settings-btn{position:absolute;bottom:15px;right:15px;font-size:22px;background:#fff;border-radius:50%;padding:6px 10px;cursor:pointer;z-index:30;user-select:none}
+.settings-btn{position:absolute;bottom:15px;right:15px;font-size:22px;background:#fff;border-radius:50%;padding:6px 10px;cursor:pointer;z-index:30;user-select:none;touch-action:manipulation}
 .settings-panel{position:absolute;top:10%;left:50%;transform:translateX(-50%);width:90%;max-width:450px;background:#fff;padding:14px;border-radius:10px;display:none;z-index:40;max-height:80vh;overflow-y:auto}
 .settings-panel input{width:100%;margin:6px 0 10px}
 .close-btn{position:absolute;top:6px;right:10px;cursor:pointer;font-size:20px;user-select:none}
 
 /* --- Mobile-specific tweaks: Coming Soon smaller in landscape & Settings scrollable in portrait --- */
 
-/* 1) Landscape phones: coming card ko vertically squash + upar gap (score-bar ke liye) */
+/* 1) Landscape phones: push the coming card lower so the top score bar stays clear */
 @media (orientation: landscape) and (max-height: 700px) {
-  /* push the coming card a bit lower so the top score bar stays clear */
   #comingScreen {
     align-items: flex-start;
     justify-content: flex-start;
     padding-top: 56px; /* gap between top (score bar) and the card */
   }
 
-  /* reduce visual height of the coming-card but keep same look */
+  /* make coming card a bit narrower and allow height cap relative to viewport */
   .overlay-card.coming-card {
-    transform: scale(1, 0.80) !important; /* slightly more vertical squash */
-    max-height: 62vh;                      /* height cap relative to viewport */
+    max-height: 62vh;
     width: calc(100% - 48px);
     margin: 0 auto;
-    padding: 16px 28px;
-    box-sizing: border-box;
+    padding: 18px 28px;
   }
 
   /* slightly smaller logos + countdown so content doesn't overflow */
@@ -89,7 +115,6 @@
 /* Extra-tight devices (very short height) — make it a bit smaller still */
 @media (orientation: landscape) and (max-height: 480px) {
   .overlay-card.coming-card {
-    transform: scale(1, 0.74) !important;
     max-height: 58vh;
     padding: 12px 20px;
   }
@@ -109,6 +134,7 @@
     max-height: 88vh;            /* internal scrolling area */
     overflow-y: auto;            /* enable scrolling */
     -webkit-overflow-scrolling: touch; /* smooth native-like scrolling on iOS/Android */
+    touch-action: pan-y;         /* allow vertical pan to scroll the panel */
     padding: 16px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.45);
   }
@@ -118,6 +144,11 @@
 
   /* ensure close button stays clickable above scroll content */
   .settings-panel .close-btn { z-index: 60; position: absolute; right: 10px; top: 6px; }
+}
+
+/* Hide settings gear in landscape as requested */
+@media (orientation: landscape) {
+  .settings-btn{ display:none !important }
 }
 
 /* -------------------------------------------------------------------------------------------------------------- */
@@ -163,10 +194,20 @@
 <!-- Coming Soon Overlay (separate) -->
 <div class="overlay-screen" id="comingScreen">
   <div class="overlay-card coming-card" id="comingCard">
-    <div class="league-line" id="comingLeague">LEAGUE NAME</div>
-    <div class="date-line" id="comingDate">DATE</div>
+    <!-- meta line (league | date) top-left -->
+    <div class="meta-line"><span id="comingLeague">LEAGUE NAME</span><span class="sep">|</span><span id="comingDate">DATE</span></div>
+
     <h2>COMING SOON</h2>
-    <div class="overlay-teams">
+
+    <!-- countdown moved inside the card between title and teams -->
+    <div class="countdown-wrap" aria-hidden="false">
+      <div style="display:flex;flex-direction:column;align-items:center;">
+        <canvas id="countdownCanvas" width="160" height="160" aria-label="countdown timer"></canvas>
+        <div id="countdownText">00:00</div>
+      </div>
+    </div>
+
+    <div class="overlay-teams" style="margin-top:18px">
       <div class="overlay-team">
         <img id="comingLogoA" src="">
         <div id="comingNameA"></div>
@@ -177,12 +218,6 @@
         <div id="comingNameB"></div>
       </div>
     </div>
-    <div class="countdown-wrap">
-      <div style="display:flex;flex-direction:column;align-items:center;">
-        <canvas id="countdownCanvas" width="160" height="160"></canvas>
-        <div id="countdownText">00:00</div>
-      </div>
-    </div>
   </div>
 </div>
 
@@ -190,7 +225,7 @@
 <audio id="bgMusic" loop></audio>
 
 <!-- Settings -->
-<div class="settings-btn" id="openSettingsBtn">⚙️</div>
+<div class="settings-btn" id="openSettingsBtn" title="Settings">⚙️</div>
 <div class="settings-panel" id="settingsPanel">
   <div class="close-btn" id="closeSettingsBtn">×</div>
   <h3>Settings</h3>
@@ -224,7 +259,9 @@
           overlay=document.getElementById('overlayScreen'),
           logoA=document.getElementById('logoA'),
           logoB=document.getElementById('logoB'),
-          comingScreen=document.getElementById('comingScreen');
+          comingScreen=document.getElementById('comingScreen'),
+          panel=document.getElementById('settingsPanel'),
+          openBtn=document.getElementById('openSettingsBtn');
 
     // Score clicks (same behaviour)
     a.onclick=()=>{ scoreA++; a.textContent=scoreA; };
@@ -251,7 +288,7 @@
       const remaining=Math.max(countdownRemaining,0);
       const percent=remaining/total; // remaining portion
       const cx=cdCanvas.width/2, cy=cdCanvas.height/2;
-      const r=58; // smaller circle radius
+      const r=Math.min(cdCanvas.width, cdCanvas.height)/2 - 22; // radius responsive
 
       ctx.clearRect(0,0,cdCanvas.width,cdCanvas.height);
 
@@ -287,13 +324,15 @@
       document.getElementById('comingNameA').textContent=document.getElementById('teamALabel').textContent;
       document.getElementById('comingNameB').textContent=document.getElementById('teamBLabel').textContent;
 
-      // League & Date
+      // League & Date (single line top-left)
       const league=document.getElementById('inputLeague').value.trim()||'LEAGUE';
       const dateVal=document.getElementById('inputDate').value||'DATE TBD';
       document.getElementById('comingLeague').textContent=league;
       document.getElementById('comingDate').textContent=dateVal;
 
       comingScreen.classList.add('show'); // perfectly centered by flex
+
+      // draw once with current remaining
       drawCountdown();
 
       if(countdownInterval) clearInterval(countdownInterval);
@@ -343,11 +382,10 @@
     };
 
     // ---------- Settings panel (same + countdown fields)
-    const openBtn=document.getElementById('openSettingsBtn'),
-          closeBtn=document.getElementById('closeSettingsBtn'),
-          panel=document.getElementById('settingsPanel');
+    const openBtnEl=document.getElementById('openSettingsBtn'),
+          closeBtn=document.getElementById('closeSettingsBtn');
 
-    openBtn.onclick=()=>panel.style.display='block';
+    openBtnEl.onclick=()=>panel.style.display='block';
     closeBtn.onclick=()=>panel.style.display='none';
 
     document.getElementById('applyBtn').onclick=()=>{
@@ -389,5 +427,43 @@
 
       panel.style.display='none';
     };
+
+    // Ensure settings gear hides in landscape and close panel when switching to landscape
+    function updateOrientationUI(){
+      const isLandscape = window.matchMedia('(orientation: landscape)').matches;
+      // hide/show button (CSS also enforces it, this keeps the DOM state consistent)
+      openBtnEl.style.display = isLandscape ? 'none' : 'block';
+      // if switching to landscape, close the panel if open
+      if(isLandscape && panel.style.display === 'block') panel.style.display = 'none';
+    }
+    window.addEventListener('orientationchange', updateOrientationUI);
+    window.addEventListener('resize', updateOrientationUI);
+    updateOrientationUI();
+
+    // Make sure the countdown canvas is crisp on high-dpi devices (scale)
+    function resizeCanvasForDPR(){
+      const dpr = window.devicePixelRatio || 1;
+      const canvas = cdCanvas;
+      const cssW = canvas.clientWidth || 160;
+      const cssH = canvas.clientHeight || 160;
+      canvas.width = Math.round(cssW * dpr);
+      canvas.height = Math.round(cssH * dpr);
+      canvas.style.width = cssW + 'px';
+      canvas.style.height = cssH + 'px';
+      ctx.scale(dpr, dpr);
+      drawCountdown();
+    }
+    // run once and on resize
+    window.addEventListener('load', resizeCanvasForDPR);
+    window.addEventListener('resize', ()=>{
+      // reset transform scale on ctx to avoid double-scaling
+      ctx.setTransform(1,0,0,1,0,0);
+      resizeCanvasForDPR();
+    });
+
+    // close overlay on click outside card (optional convenience, keep behavior same else)
+    overlay.addEventListener('click', (e)=>{ if(e.target === overlay) overlay.classList.remove('show'); });
+    comingScreen.addEventListener('click', (e)=>{ if(e.target === comingScreen) comingScreen.classList.remove('show'); if(countdownInterval){ clearInterval(countdownInterval); countdownInterval=null; } });
+
   </script></body>
 </html>

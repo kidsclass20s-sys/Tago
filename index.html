@@ -1,7 +1,9 @@
-<!DOCTYPE html><html lang="en"><head>
-  <meta charset="utf-8" />
+<!DOCTYPE html><html lang="en"><head>  <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, orientation=landscape" />
-  <title>Football Score App — Professional Timer & Broadcast Celebration</title>  <!-- Roboto Condensed for ticker only (online font) -->  <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700;900&display=swap" rel="stylesheet">  <style>
+  <title>Football Score App — Professional Timer & Broadcast Celebration</title>
+  <!-- Roboto Condensed for ticker only (online font) -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700;900&display=swap" rel="stylesheet">
+  <style>
     :root{
       --bg-black:#000;
       --badge-red:#d92b2b;
@@ -101,11 +103,16 @@
 .settings-panel button{Padding:8px 12px;border-radius:6px;border:1px solid #ccc;background:#fff;cursor:pointer}
 .close-btn{position:absolute;top:6px;right:10px;cursor:pointer;font-size:20px;user-select:none}
 
-/* Match Simulation glowing */
+/* Match Simulation — now fixed bottom-right above ticker with safe gaps */
 .match-simulation{
-  position:absolute;right:20px;text-transform:uppercase;font-weight:900;letter-spacing:1px;z-index:20;user-select:none;
+  position:absolute;
+  right:24px; /* right side se safe gap */
+  bottom: calc(var(--ticker-height) + 20px); /* red ticker bar se upar safe gap */
+  text-transform:uppercase;font-weight:900;letter-spacing:1px;z-index:20;user-select:none;
   background:linear-gradient(90deg,#ffb347,#ff6a00,#ffb347);background-size:200% auto;-webkit-background-clip:text;background-clip:text;color:transparent;
-  text-shadow:0 0 6px rgba(255,160,0,.6),0 0 12px rgba(255,110,0,.45);animation:matchGlow 2.6s linear infinite
+  text-shadow:0 0 6px rgba(255,160,0,.6),0 0 12px rgba(255,110,0,.45);animation:matchGlow 2.6s linear infinite;
+  font-size:14px; /* consistent size across screens */
+  line-height:1;
 }
 @keyframes matchGlow{0%{text-shadow:0 0 6px rgba(255,160,0,.6)}50%{text-shadow:0 0 14px rgba(255,200,0,.95)}100%{text-shadow:0 0 6px rgba(255,160,0,.6)}}
 
@@ -221,7 +228,10 @@
       </video>
     </div><!-- LIVE Badge & Match Simulation -->
 <div class="live-badge" id="liveBadge"><div class="live-dot"></div>LIVE</div>
-<div class="match-simulation" id="matchSimText">Match Simulation</div><!-- Score bar --><div class="score-bar">
+<div class="match-simulation" id="matchSimText">Match Simulation</div>
+
+<!-- Score bar -->
+<div class="score-bar">
   <img id="logoA" src="https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg" class="team-logo" />
   <div class="team-label" id="teamALabel">HOME TEAM</div>
   <div class="score"><span id="scoreA">0</span></div>
@@ -229,7 +239,10 @@
   <div class="score"><span id="scoreB">0</span></div>
   <div class="team-label" id="teamBLabel">AWAY TEAM</div>
   <img id="logoB" src="https://upload.wikimedia.org/wikipedia/en/4/47/FC_Barcelona_%28crest%29.svg" class="team-logo" />
-</div><!-- Overlay --><div class="overlay-screen" id="overlayScreen">
+</div>
+
+<!-- Overlay -->
+<div class="overlay-screen" id="overlayScreen">
   <div class="overlay-card">
     <h2 id="overlayTitle">HALF TIME</h2>
     <div class="overlay-teams">
@@ -244,16 +257,25 @@
       </div>
     </div>
   </div>
-</div><!-- Background music (optional) --><audio id="bgMusic" loop></audio>
+</div>
 
-<!-- Bottom ticker --><div class="ticker" id="ticker">
-  <div class="ticker-track" id="tickerTrack"></div>  <!-- Celebration banner sits over ticker center -->  <div class="celebration-banner" id="celebrationBanner" aria-hidden="true">
+<!-- Background music (optional) -->
+<audio id="bgMusic" loop></audio>
+
+<!-- Bottom ticker -->
+<div class="ticker" id="ticker">
+  <div class="ticker-track" id="tickerTrack"></div>
+  <!-- Celebration banner sits over ticker center -->
+  <div class="celebration-banner" id="celebrationBanner" aria-hidden="true">
     <div class="celebration-rays" id="celebrationRays"></div>
     <div class="celebration-inner">
       <div class="celebration-text" id="celebrationText">TEAM scores a GOAL!</div>
     </div>
   </div>
-</div><!-- Settings --><div class="settings-btn" id="openSettingsBtn">⚙️</div>
+</div>
+
+<!-- Settings -->
+<div class="settings-btn" id="openSettingsBtn">⚙️</div>
 <div class="settings-panel" id="settingsPanel">
   <div class="close-btn" id="closeSettingsBtn">×</div>
   <h3>Settings</h3>
@@ -273,363 +295,353 @@
     <button id="applyBtn">Apply</button>
     <button id="showComingBtn">Show Coming Soon</button>
   </div>
-</div>  </div>  <script>
+</div>
+
+  </div>  <script>
     /*********************** Core state & elements *************************/
     let scoreA=0, scoreB=0, timer=0, interval=null;
     let overlayBg=null;
-    let matchState='idle';// NEW: goal music state
-let goalMusicUrl = null; // URL created from uploaded goal sound
-let currentGoalAudio = null; // currently playing goal Audio instance
-let goalAudioTimer = null;    // timeout to stop the goal sound after 3s
+    let matchState='idle';
+    // NEW: goal music state
+    let goalMusicUrl = null; // URL created from uploaded goal sound
+    let currentGoalAudio = null; // currently playing goal Audio instance
+    let goalAudioTimer = null;    // timeout to stop the goal sound after 3s
 
-const elScoreA = document.getElementById('scoreA'),
-      elScoreB = document.getElementById('scoreB'),
-      elTimer  = document.getElementById('timer'),
-      overlay  = document.getElementById('overlayScreen'),
-      logoA    = document.getElementById('logoA'),
-      logoB    = document.getElementById('logoB');
+    const elScoreA = document.getElementById('scoreA'),
+          elScoreB = document.getElementById('scoreB'),
+          elTimer  = document.getElementById('timer'),
+          overlay  = document.getElementById('overlayScreen'),
+          logoA    = document.getElementById('logoA'),
+          logoB    = document.getElementById('logoB');
 
-// Score clicks -> update and celebration
-elScoreA.onclick = ()=> { scoreA++; elScoreA.textContent = scoreA; triggerCelebration('home'); };
-elScoreB.onclick = ()=> { scoreB++; elScoreB.textContent = scoreB; triggerCelebration('away'); };
+    // Score clicks -> update and celebration
+    elScoreA.onclick = ()=> { scoreA++; elScoreA.textContent = scoreA; triggerCelebration('home'); };
+    elScoreB.onclick = ()=> { scoreB++; elScoreB.textContent = scoreB; triggerCelebration('away'); };
 
-// Timer click state machine (unchanged behavior)
-elTimer.onclick = () => {
-  if(matchState === 'idle'){
-    showComingSoon(overlayBg); matchState = 'coming';
-    if(interval){ clearInterval(interval); interval=null; }
-  } else if(matchState === 'coming'){
-    overlay.classList.remove('show');
-    interval = setInterval(()=>{
-      timer++; elTimer.textContent = `${String(Math.floor(timer/60)).padStart(2,'0')}:${String(timer%60).padStart(2,'0')}`;
-    },1000);
-    matchState = 'firstHalf';
-  } else if(matchState === 'firstHalf'){
-    if(interval){ clearInterval(interval); interval=null; }
-    showOverlay('HALF TIME', overlayBg, false);
-    matchState = 'halfTime';
-  } else if(matchState === 'halfTime'){
-    overlay.classList.remove('show');
-    interval = setInterval(()=>{
-      timer++; elTimer.textContent = `${String(Math.floor(timer/60)).padStart(2,'0')}:${String(timer%60).padStart(2,'0')}`;
-    },1000);
-    matchState = 'secondHalf';
-  } else if(matchState === 'secondHalf'){
-    if(interval){ clearInterval(interval); interval=null; }
-    showOverlay('FULL TIME', overlayBg, false);
-    matchState = 'fullTime';
-  } else if(matchState === 'fullTime'){
-    if(interval){ clearInterval(interval); interval=null; }
-    matchState = 'idle';
-    timer=0; scoreA=0; scoreB=0;
-    elScoreA.textContent = 0; elScoreB.textContent = 0; elTimer.textContent = '00:00';
-    overlay.classList.remove('show');
-  }
-};
+    // Timer click state machine (unchanged behavior)
+    elTimer.onclick = () => {
+      if(matchState === 'idle'){
+        showComingSoon(overlayBg); matchState = 'coming';
+        if(interval){ clearInterval(interval); interval=null; }
+      } else if(matchState === 'coming'){
+        overlay.classList.remove('show');
+        interval = setInterval(()=>{
+          timer++; elTimer.textContent = `${String(Math.floor(timer/60)).padStart(2,'0')}:${String(timer%60).padStart(2,'0')}`;
+        },1000);
+        matchState = 'firstHalf';
+      } else if(matchState === 'firstHalf'){
+        if(interval){ clearInterval(interval); interval=null; }
+        showOverlay('HALF TIME', overlayBg, false);
+        matchState = 'halfTime';
+      } else if(matchState === 'halfTime'){
+        overlay.classList.remove('show');
+        interval = setInterval(()=>{
+          timer++; elTimer.textContent = `${String(Math.floor(timer/60)).padStart(2,'0')}:${String(timer%60).padStart(2,'0')}`;
+        },1000);
+        matchState = 'secondHalf';
+      } else if(matchState === 'secondHalf'){
+        if(interval){ clearInterval(interval); interval=null; }
+        showOverlay('FULL TIME', overlayBg, false);
+        matchState = 'fullTime';
+      } else if(matchState === 'fullTime'){
+        if(interval){ clearInterval(interval); interval=null; }
+        matchState = 'idle';
+        timer=0; scoreA=0; scoreB=0;
+        elScoreA.textContent = 0; elScoreB.textContent = 0; elTimer.textContent = '00:00';
+        overlay.classList.remove('show');
+      }
+    };
 
-function showOverlay(title,bg,isVS=false){
-  document.getElementById('overlayTitle').textContent = title;
-  document.getElementById('overlayLogoA').src = logoA.src;
-  document.getElementById('overlayLogoB').src = logoB.src;
-  document.getElementById('overlayNameA').textContent = document.getElementById('teamALabel').textContent;
-  document.getElementById('overlayNameB').textContent = document.getElementById('teamBLabel').textContent;
-  document.getElementById('overlayScore').textContent = isVS ? 'VS' : `${scoreA} - ${scoreB}`;
-  overlay.classList.add('show');
-  overlay.style.background = bg ? `url(${bg}) center/cover no-repeat` : 'rgba(0,0,0,0.7)';
-}
-function showComingSoon(bg){ showOverlay('COMING SOON', bg, true); matchState='coming'; }
+    function showOverlay(title,bg,isVS=false){
+      document.getElementById('overlayTitle').textContent = title;
+      document.getElementById('overlayLogoA').src = logoA.src;
+      document.getElementById('overlayLogoB').src = logoB.src;
+      document.getElementById('overlayNameA').textContent = document.getElementById('teamALabel').textContent;
+      document.getElementById('overlayNameB').textContent = document.getElementById('teamBLabel').textContent;
+      document.getElementById('overlayScore').textContent = isVS ? 'VS' : `${scoreA} - ${scoreB}`;
+      overlay.classList.add('show');
+      overlay.style.background = bg ? `url(${bg}) center/cover no-repeat` : 'rgba(0,0,0,0.7)';
+    }
+    function showComingSoon(bg){ showOverlay('COMING SOON', bg, true); matchState='coming'; }
 
-/************************ Settings panel ************************/
-const openBtn=document.getElementById('openSettingsBtn'),
-      closeBtn=document.getElementById('closeSettingsBtn'),
-      panel=document.getElementById('settingsPanel'),
-      showComingBtn=document.getElementById('showComingBtn');
+    /************************ Settings panel ************************/
+    const openBtn=document.getElementById('openSettingsBtn'),
+          closeBtn=document.getElementById('closeSettingsBtn'),
+          panel=document.getElementById('settingsPanel'),
+          showComingBtn=document.getElementById('showComingBtn');
 
-openBtn.onclick = ()=> panel.style.display = 'block';
-closeBtn.onclick = ()=> panel.style.display = 'none';
-showComingBtn.onclick = ()=> showComingSoon(overlayBg);
+    openBtn.onclick = ()=> panel.style.display = 'block';
+    closeBtn.onclick = ()=> panel.style.display = 'none';
+    showComingBtn.onclick = ()=> showComingSoon(overlayBg);
 
-// Ensure touch gestures inside the panel don't get captured by the page/video on Android
-// This makes vertical touch scrolling inside the panel reliable on mobile devices.
-try{
-  panel.addEventListener('touchstart', function(e){ e.stopPropagation(); }, {passive:true});
-  panel.addEventListener('touchmove', function(e){ e.stopPropagation(); }, {passive:true});
-}catch(e){ /* older browsers may ignore options; safe to ignore errors */ }
-
-/*********************** Title Case Helper *************************/
-function toTitleCase(input){
-  if(!input) return '';
-  // normalize bullets and similar separators so they are preserved
-  let s = String(input).trim();
-  s = s.replace(/\u2022/g, ' • '); // bullet
-  s = s.replace(/\s+/g, ' ');
-  // split by spaces and title-case each token while preserving punctuation
-  return s.split(' ').map(token=>{
-    if(token === '•') return '•';
-    // preserve tokens that are pure punctuation
-    if(/^[^A-Za-z0-9]+$/.test(token)) return token;
-    const m = token.match(/^([^A-Za-z0-9]*)([A-Za-z0-9]+(?:'[A-Za-z0-9]+)?)([^A-Za-z0-9]*)$/);
-    if(!m) return token.charAt(0).toUpperCase() + token.slice(1).toLowerCase();
-    const prefix = m[1] || '';
-    const core   = m[2] || '';
-    const suffix = m[3] || '';
-    const coreTitle = core.charAt(0).toUpperCase() + core.slice(1).toLowerCase();
-    return prefix + coreTitle + suffix;
-  }).join(' ');
-}
-
-/************************* Continuous Gapless Ticker *************************/
-const ticker = document.getElementById('ticker');
-const track  = document.getElementById('tickerTrack');
-let rafId = null;
-let xPos = 0;
-let phraseWidth = 0;
-let currentText = '';
-// FASTER ticker as requested
-let tickerDurationSec = 18;
-
-function buildTickerItems(display){
-  track.innerHTML = '';
-  currentText = display;
-  // add a sample to measure width
-  const sample = document.createElement('span');
-  sample.className = 'ticker-item';
-  sample.textContent = display;
-  track.appendChild(sample);
-  // measure and duplicate until track width > container + phrase
-  const phraseW = sample.offsetWidth || 1;
-  const containerW = ticker.offsetWidth || window.innerWidth || 1;
-  let totalW = 0;
-  let safety = 0;
-  while (totalW < containerW + phraseW && safety < 200){
-    const s = document.createElement('span');
-    s.className = 'ticker-item';
-    s.textContent = display;
-    track.appendChild(s);
-    totalW += s.offsetWidth;
-    safety++;
-  }
-  // ensure at least 2 copies
-  if(track.children.length === 1){
-    const extra = document.createElement('span');
-    extra.className = 'ticker-item';
-    extra.textContent = display;
-    track.appendChild(extra);
-  }
-  track.style.transform = 'translateX(0px)';
-  xPos = 0;
-}
-
-function startTicker(){
-  cancelTicker();
-  if(!track || !currentText) return;
-  const first = track.querySelector('.ticker-item');
-  if(!first) return;
-  phraseWidth = first.offsetWidth || 1;
-  xPos = (xPos % phraseWidth);
-  const speed = phraseWidth / Math.max(0.001, tickerDurationSec);
-  let lastTs = null;
-  function step(ts){
-    if(!lastTs) lastTs = ts;
-    const delta = (ts - lastTs)/1000;
-    lastTs = ts;
-    xPos -= speed * delta;
-    while(xPos <= -phraseWidth) xPos += phraseWidth;
-    track.style.transform = `translateX(${Math.round(xPos)}px)`;
-    rafId = requestAnimationFrame(step);
-  }
-  rafId = requestAnimationFrame(step);
-}
-function cancelTicker(){ if(rafId){ cancelAnimationFrame(rafId); rafId = null; } }
-
-function setTickerText(text){
-  const raw = (!text || String(text).trim() === '') ? 'BREAKING NEWS • MATCH UPDATES • TRANSFER ALERTS' : String(text);
-  // Convert to Title Case before displaying
-  const display = toTitleCase(raw);
-  buildTickerItems(display);
-  // small delay to let browser measure
-  setTimeout(()=> startTicker(), 30);
-}
-
-window.addEventListener('resize', ()=>{
-  positionMatchSimulation();
-  setTimeout(()=> setTickerText(currentText), 120);
-});
-document.addEventListener('visibilitychange', ()=>{
-  if(document.hidden) cancelTicker(); else startTicker();
-});
-
-/************************ Celebration Banner Logic (5s + animation) ************************/
-const celebrationBanner = document.getElementById('celebrationBanner');
-const celebrationText = document.getElementById('celebrationText');
-const trackEl = document.getElementById('tickerTrack');
-let celebrationTimeout = null;
-
-function buildCelebrationMessage(side){
-  const homeName = document.getElementById('teamALabel').textContent || 'HOME TEAM';
-  const awayName = document.getElementById('teamBLabel').textContent || 'AWAY TEAM';
-  const templates = [
-    '{TEAM} scores a GOAL!',
-    'GOAL! {TEAM} finds the back of the net!',
-    '{TEAM} hits the net!',
-    'GOOOAL! {TEAM} takes the lead!'
-  ];
-  const idx = Math.floor(Math.random() * templates.length);
-  const team = (side === 'home') ? homeName : awayName;
-  return templates[idx].replace('{TEAM}', team);
-}
-
-function showCelebrationFor(side){
-  // compose message and keep it broadcast-friendly (Title case the team but overall uppercase for broadcast look)
-  let msg = buildCelebrationMessage(side);
-
-  // Normalize team words inside message to Title Case but leave the rest as originally punctuated.
-  // We'll transform the entire sentence to "broadcast-friendly" - uppercase visually handled by CSS.
-  // But keep team name nicer: replace team occurrence(s) with Title Cased variant
-  const homeName = document.getElementById('teamALabel').textContent || 'HOME TEAM';
-  const awayName = document.getElementById('teamBLabel').textContent || 'AWAY TEAM';
-  const team = (side === 'home') ? homeName : awayName;
-  const teamTitle = toTitleCase(team);
-
-  // replace team occurrences (case-insensitive)
-  msg = msg.replace(new RegExp(team, 'ig'), teamTitle);
-
-  celebrationText.textContent = msg;
-
-  // hide & pause ticker visual
-  cancelTicker();
-  trackEl.style.visibility = 'hidden';
-
-  // show banner with animation
-  celebrationBanner.classList.add('show');
-  celebrationBanner.setAttribute('aria-hidden','false');
-
-  // reset timer if running
-  if(celebrationTimeout) clearTimeout(celebrationTimeout);
-
-  // show for 5 seconds, then hide and resume ticker
-  celebrationTimeout = setTimeout(()=>{
-    celebrationBanner.classList.remove('show');
-    celebrationBanner.setAttribute('aria-hidden','true');
-    // short delay to allow exit animation then resume
-    setTimeout(()=>{
-      trackEl.style.visibility = 'visible';
-      startTicker();
-    }, 160);
-    celebrationTimeout = null;
-  }, 5000);
-}
-
-// external trigger to handle a goal (used by score buttons)
-function triggerCelebration(side){
-  showCelebrationFor(side);
-
-  // Play goal sound for 3 seconds (if provided)
-  if(goalMusicUrl){
+    // Ensure touch gestures inside the panel don't get captured by the page/video on Android
+    // This makes vertical touch scrolling inside the panel reliable on mobile devices.
     try{
-      // stop previous if running
-      if(currentGoalAudio){
-        currentGoalAudio.pause();
-        currentGoalAudio.currentTime = 0;
+      panel.addEventListener('touchstart', function(e){ e.stopPropagation(); }, {passive:true});
+      panel.addEventListener('touchmove', function(e){ e.stopPropagation(); }, {passive:true});
+    }catch(e){ /* older browsers may ignore options; safe to ignore errors */ }
+
+    /*********************** Title Case Helper *************************/
+    function toTitleCase(input){
+      if(!input) return '';
+      // normalize bullets and similar separators so they are preserved
+      let s = String(input).trim();
+      s = s.replace(/\u2022/g, ' • '); // bullet
+      s = s.replace(/\s+/g, ' ');
+      // split by spaces and title-case each token while preserving punctuation
+      return s.split(' ').map(token=>{
+        if(token === '•') return '•';
+        // preserve tokens that are pure punctuation
+        if(/^[^A-Za-z0-9]+$/.test(token)) return token;
+        const m = token.match(/^([^A-Za-z0-9]*)([A-Za-z0-9]+(?:'[A-Za-z0-9]+)?)([^A-Za-z0-9]*)$/);
+        if(!m) return token.charAt(0).toUpperCase() + token.slice(1).toLowerCase();
+        const prefix = m[1] || '';
+        const core   = m[2] || '';
+        const suffix = m[3] || '';
+        const coreTitle = core.charAt(0).toUpperCase() + core.slice(1).toLowerCase();
+        return prefix + coreTitle + suffix;
+      }).join(' ');
+    }
+
+    /************************* Continuous Gapless Ticker *************************/
+    const ticker = document.getElementById('ticker');
+    const track  = document.getElementById('tickerTrack');
+    let rafId = null;
+    let xPos = 0;
+    let phraseWidth = 0;
+    let currentText = '';
+    // FASTER ticker as requested
+    let tickerDurationSec = 18;
+
+    function buildTickerItems(display){
+      track.innerHTML = '';
+      currentText = display;
+      // add a sample to measure width
+      const sample = document.createElement('span');
+      sample.className = 'ticker-item';
+      sample.textContent = display;
+      track.appendChild(sample);
+      // measure and duplicate until track width > container + phrase
+      const phraseW = sample.offsetWidth || 1;
+      const containerW = ticker.offsetWidth || window.innerWidth || 1;
+      let totalW = 0;
+      let safety = 0;
+      while (totalW < containerW + phraseW && safety < 200){
+        const s = document.createElement('span');
+        s.className = 'ticker-item';
+        s.textContent = display;
+        track.appendChild(s);
+        totalW += s.offsetWidth;
+        safety++;
+      }
+      // ensure at least 2 copies
+      if(track.children.length === 1){
+        const extra = document.createElement('span');
+        extra.className = 'ticker-item';
+        extra.textContent = display;
+        track.appendChild(extra);
+      }
+      track.style.transform = 'translateX(0px)';
+      xPos = 0;
+    }
+
+    function startTicker(){
+      cancelTicker();
+      if(!track || !currentText) return;
+      const first = track.querySelector('.ticker-item');
+      if(!first) return;
+      phraseWidth = first.offsetWidth || 1;
+      xPos = (xPos % phraseWidth);
+      const speed = phraseWidth / Math.max(0.001, tickerDurationSec);
+      let lastTs = null;
+      function step(ts){
+        if(!lastTs) lastTs = ts;
+        const delta = (ts - lastTs)/1000;
+        lastTs = ts;
+        xPos -= speed * delta;
+        while(xPos <= -phraseWidth) xPos += phraseWidth;
+        track.style.transform = `translateX(${Math.round(xPos)}px)`;
+        rafId = requestAnimationFrame(step);
+      }
+      rafId = requestAnimationFrame(step);
+    }
+    function cancelTicker(){ if(rafId){ cancelAnimationFrame(rafId); rafId = null; } }
+
+    function setTickerText(text){
+      const raw = (!text || String(text).trim() === '') ? 'BREAKING NEWS • MATCH UPDATES • TRANSFER ALERTS' : String(text);
+      // Convert to Title Case before displaying
+      const display = toTitleCase(raw);
+      buildTickerItems(display);
+      // small delay to let browser measure
+      setTimeout(()=> startTicker(), 30);
+    }
+
+    window.addEventListener('resize', ()=>{
+      positionMatchSimulation();
+      setTimeout(()=> setTickerText(currentText), 120);
+    });
+    document.addEventListener('visibilitychange', ()=>{
+      if(document.hidden) cancelTicker(); else startTicker();
+    });
+
+    /************************ Celebration Banner Logic (5s + animation) ************************/
+    const celebrationBanner = document.getElementById('celebrationBanner');
+    const celebrationText = document.getElementById('celebrationText');
+    const trackEl = document.getElementById('tickerTrack');
+    let celebrationTimeout = null;
+
+    function buildCelebrationMessage(side){
+      const homeName = document.getElementById('teamALabel').textContent || 'HOME TEAM';
+      const awayName = document.getElementById('teamBLabel').textContent || 'AWAY TEAM';
+      const templates = [
+        '{TEAM} scores a GOAL!',
+        'GOAL! {TEAM} finds the back of the net!',
+        '{TEAM} hits the net!',
+        'GOOOAL! {TEAM} takes the lead!'
+      ];
+      const idx = Math.floor(Math.random() * templates.length);
+      const team = (side === 'home') ? homeName : awayName;
+      return templates[idx].replace('{TEAM}', team);
+    }
+
+    function showCelebrationFor(side){
+      // compose message and keep it broadcast-friendly (Title case the team but overall uppercase for broadcast look)
+      let msg = buildCelebrationMessage(side);
+
+      // Normalize team words inside message to Title Case but leave the rest as originally punctuated.
+      // We'll transform the entire sentence to "broadcast-friendly" - uppercase visually handled by CSS.
+      // But keep team name nicer: replace team occurrence(s) with Title Cased variant
+      const homeName = document.getElementById('teamALabel').textContent || 'HOME TEAM';
+      const awayName = document.getElementById('teamBLabel').textContent || 'AWAY TEAM';
+      const team = (side === 'home') ? homeName : awayName;
+      const teamTitle = toTitleCase(team);
+
+      // replace team occurrences (case-insensitive)
+      msg = msg.replace(new RegExp(team, 'ig'), teamTitle);
+
+      celebrationText.textContent = msg;
+
+      // hide & pause ticker visual
+      cancelTicker();
+      trackEl.style.visibility = 'hidden';
+
+      // show banner with animation
+      celebrationBanner.classList.add('show');
+      celebrationBanner.setAttribute('aria-hidden','false');
+
+      // reset timer if running
+      if(celebrationTimeout) clearTimeout(celebrationTimeout);
+
+      // show for 5 seconds, then hide and resume ticker
+      celebrationTimeout = setTimeout(()=>{
+        celebrationBanner.classList.remove('show');
+        celebrationBanner.setAttribute('aria-hidden','true');
+        // short delay to allow exit animation then resume
+        setTimeout(()=>{
+          trackEl.style.visibility = 'visible';
+          startTicker();
+        }, 160);
+        celebrationTimeout = null;
+      }, 5000);
+    }
+
+    // external trigger to handle a goal (used by score buttons)
+    function triggerCelebration(side){
+      showCelebrationFor(side);
+
+      // Play goal sound for 3 seconds (if provided)
+      if(goalMusicUrl){
+        try{
+          // stop previous if running
+          if(currentGoalAudio){
+            currentGoalAudio.pause();
+            currentGoalAudio.currentTime = 0;
+            currentGoalAudio = null;
+          }
+          if(goalAudioTimer){ clearTimeout(goalAudioTimer); goalAudioTimer = null; }
+
+          const gAudio = new Audio(goalMusicUrl);
+          gAudio.currentTime = 0;
+          gAudio.play().catch(()=>{});
+          currentGoalAudio = gAudio;
+
+          goalAudioTimer = setTimeout(()=>{
+            if(currentGoalAudio){ try{ currentGoalAudio.pause(); currentGoalAudio.currentTime = 0; }catch(e){}
+              currentGoalAudio = null;
+            }
+            goalAudioTimer = null;
+          }, 3000);
+        }catch(e){ /* ignore audio errors */ }
+      }
+
+      // small score glow pulse
+      document.querySelectorAll('.score span').forEach(el=>{
+        el.style.transition='text-shadow 260ms ease';
+        el.style.textShadow='0 0 18px rgba(255,255,255,.95)';
+        setTimeout(()=> el.style.textShadow = '', 800);
+      });
+    }
+
+    /************************ Initialize & Settings Apply ************************/
+    document.getElementById('applyBtn').onclick = ()=>{
+      document.getElementById('teamALabel').textContent = document.getElementById('inputTeamA').value || 'HOME TEAM';
+      document.getElementById('teamBLabel').textContent = document.getElementById('inputTeamB').value || 'AWAY TEAM';
+
+      const logoAFile = document.getElementById('inputLogoA').files[0];
+      if(logoAFile) logoA.src = URL.createObjectURL(logoAFile);
+      const logoBFile = document.getElementById('inputLogoB').files[0];
+      if(logoBFile) logoB.src = URL.createObjectURL(logoBFile);
+
+      const vid=document.getElementById('inputVideo').files[0];
+      if(vid) document.getElementById('gameVideo').src = URL.createObjectURL(vid);
+
+      const music=document.getElementById('inputMusic').files[0];
+      if(music){
+        const audio=document.getElementById('bgMusic');
+        audio.src = URL.createObjectURL(music);
+        audio.muted = false;
+        audio.play().catch(()=>{});
+      }
+
+      // Goal music file (new)
+      const goalFile = document.getElementById('inputGoalMusic').files[0];
+      if(goalFile) goalMusicUrl = URL.createObjectURL(goalFile);
+
+      const overlayFile = document.getElementById('inputOverlayBg').files[0];
+      if(overlayFile) overlayBg = URL.createObjectURL(overlayFile);
+
+      const min = parseInt(document.getElementById('inputTimerMin').value) || 0;
+      const sec = parseInt(document.getElementById('inputTimerSec').value) || 0;
+      timer = min*60 + sec;
+      elTimer.textContent = `${String(min).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+
+      const tickerInput = document.getElementById('inputTickerText').value;
+      if(tickerInput !== undefined) setTickerText(tickerInput);
+
+      positionMatchSimulation();
+      panel.style.display = 'none';
+    };
+
+    const openSettingsBtn = document.getElementById('openSettingsBtn');
+    openSettingsBtn.onclick = () => { panel.style.display = 'block'; };
+
+    // helper retained for compatibility (now no-op; CSS handles fixed bottom-right)
+    function positionMatchSimulation(){ /* no-op: CSS positions bottom-right above ticker */ }
+
+    /************************ Initialize ************************/
+    window.addEventListener('load', ()=>{
+      positionMatchSimulation();
+      setTickerText('BREAKING NEWS • LIVE COMMENTARY • MATCH BUILD-UP');
+    });
+
+    // cleanup before unload
+    window.addEventListener('beforeunload', ()=>{
+      cancelTicker();
+      if(celebrationTimeout) clearTimeout(celebrationTimeout);
+      if(goalAudioTimer) clearTimeout(goalAudioTimer);
+      if(currentGoalAudio){ try{ currentGoalAudio.pause(); currentGoalAudio.currentTime = 0; }catch(e){}
         currentGoalAudio = null;
       }
-      if(goalAudioTimer){ clearTimeout(goalAudioTimer); goalAudioTimer = null; }
+    });
 
-      const gAudio = new Audio(goalMusicUrl);
-      gAudio.currentTime = 0;
-      gAudio.play().catch(()=>{});
-      currentGoalAudio = gAudio;
-
-      goalAudioTimer = setTimeout(()=>{
-        if(currentGoalAudio){ try{ currentGoalAudio.pause(); currentGoalAudio.currentTime = 0; }catch(e){}
-          currentGoalAudio = null;
-        }
-        goalAudioTimer = null;
-      }, 3000);
-    }catch(e){ /* ignore audio errors */ }
-  }
-
-  // small score glow pulse
-  document.querySelectorAll('.score span').forEach(el=>{
-    el.style.transition='text-shadow 260ms ease';
-    el.style.textShadow='0 0 18px rgba(255,255,255,.95)';
-    setTimeout(()=> el.style.textShadow = '', 800);
-  });
-}
-
-/************************ Initialize & Settings Apply ************************/
-document.getElementById('applyBtn').onclick = ()=>{
-  document.getElementById('teamALabel').textContent = document.getElementById('inputTeamA').value || 'HOME TEAM';
-  document.getElementById('teamBLabel').textContent = document.getElementById('inputTeamB').value || 'AWAY TEAM';
-
-  const logoAFile = document.getElementById('inputLogoA').files[0];
-  if(logoAFile) logoA.src = URL.createObjectURL(logoAFile);
-  const logoBFile = document.getElementById('inputLogoB').files[0];
-  if(logoBFile) logoB.src = URL.createObjectURL(logoBFile);
-
-  const vid=document.getElementById('inputVideo').files[0];
-  if(vid) document.getElementById('gameVideo').src = URL.createObjectURL(vid);
-
-  const music=document.getElementById('inputMusic').files[0];
-  if(music){
-    const audio=document.getElementById('bgMusic');
-    audio.src = URL.createObjectURL(music);
-    audio.muted = false;
-    audio.play().catch(()=>{});
-  }
-
-  // Goal music file (new)
-  const goalFile = document.getElementById('inputGoalMusic').files[0];
-  if(goalFile) goalMusicUrl = URL.createObjectURL(goalFile);
-
-  const overlayFile = document.getElementById('inputOverlayBg').files[0];
-  if(overlayFile) overlayBg = URL.createObjectURL(overlayFile);
-
-  const min = parseInt(document.getElementById('inputTimerMin').value) || 0;
-  const sec = parseInt(document.getElementById('inputTimerSec').value) || 0;
-  timer = min*60 + sec;
-  elTimer.textContent = `${String(min).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
-
-  const tickerInput = document.getElementById('inputTickerText').value;
-  if(tickerInput !== undefined) setTickerText(tickerInput);
-
-  positionMatchSimulation();
-  panel.style.display = 'none';
-};
-
-const openSettingsBtn = document.getElementById('openSettingsBtn');
-openSettingsBtn.onclick = () => { panel.style.display = 'block'; };
-
-// helper to position match simulation text below live badge
-function positionMatchSimulation(){
-  const live = document.getElementById('liveBadge');
-  const sim = document.getElementById('matchSimText');
-  if(!live || !sim) return;
-  const cs = getComputedStyle(live);
-  const liveTop = parseFloat(cs.top) || 0;
-  const h = live.offsetHeight;
-  sim.style.top = (liveTop + h + h) + 'px';
-  sim.style.height = h + 'px';
-  sim.style.lineHeight = h + 'px';
-  sim.style.fontSize = Math.max(12, Math.round(h * 0.60)) + 'px';
-}
-
-/************************ Initialize ************************/
-window.addEventListener('load', ()=>{
-  positionMatchSimulation();
-  setTickerText('BREAKING NEWS • LIVE COMMENTARY • MATCH BUILD-UP');
-});
-
-// cleanup before unload
-window.addEventListener('beforeunload', ()=>{
-  cancelTicker();
-  if(celebrationTimeout) clearTimeout(celebrationTimeout);
-  if(goalAudioTimer) clearTimeout(goalAudioTimer);
-  if(currentGoalAudio){ try{ currentGoalAudio.pause(); currentGoalAudio.currentTime = 0; }catch(e){}
-    currentGoalAudio = null;
-  }
-});
-
-</script></body>
-
-</html>
+  </script></body></html>

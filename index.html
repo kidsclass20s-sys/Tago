@@ -87,14 +87,14 @@
 
 /* Settings */
 .settings-btn{position:absolute;bottom:15px;right:15px;font-size:22px;background:#fff;border-radius:50%;padding:6px 10px;cursor:pointer;z-index:30;user-select:none}
+/* UPDATED: ensure reliable touch scrolling on mobile (Android/iOS) */
 .settings-panel{
   position:absolute;top:10%;left:50%;transform:translateX(-50%);width:90%;max-width:480px;background:#fff;padding:14px;border-radius:10px;
-  display:none;z-index:40;max-height:80vh;
-
-  /* FIX: proper scroll both up & down on mobile portrait */
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  -webkit-overflow-scrolling: touch;
+  display:none;z-index:40;max-height:80vh;overflow-y:auto;
+  -webkit-overflow-scrolling: touch; /* momentum scrolling for mobile */
+  touch-action: pan-y;           /* allow vertical pan gestures inside panel */
+  overscroll-behavior-y: contain;/* prevent parent from capturing overscroll */
+  pointer-events: auto;          /* ensure element accepts pointer events */
 }
 .settings-panel input{width:100%;margin:6px 0 10px}
 .settings-panel .panel-btns{display:flex;gap:8px;margin-top:6px;flex-wrap:wrap}
@@ -348,6 +348,13 @@ const openBtn=document.getElementById('openSettingsBtn'),
 openBtn.onclick = ()=> panel.style.display = 'block';
 closeBtn.onclick = ()=> panel.style.display = 'none';
 showComingBtn.onclick = ()=> showComingSoon(overlayBg);
+
+// Ensure touch gestures inside the panel don't get captured by the page/video on Android
+// This makes vertical touch scrolling inside the panel reliable on mobile devices.
+try{
+  panel.addEventListener('touchstart', function(e){ e.stopPropagation(); }, {passive:true});
+  panel.addEventListener('touchmove', function(e){ e.stopPropagation(); }, {passive:true});
+}catch(e){ /* older browsers may ignore options; safe to ignore errors */ }
 
 /*********************** Title Case Helper *************************/
 function toTitleCase(input){

@@ -1,54 +1,292 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, orientation=landscape" />
   <title>Football Score App</title>
   <style>
-    :root { --bg-black:#000; --badge-red:#d92b2b; }
-    *{margin:0;padding:0;box-sizing:border-box}
-    html,body{width:100vw;height:100vh;overflow:hidden;background:var(--bg-black)}
-    body{display:flex;justify-content:center;align-items:center;font-family:Arial,sans-serif}.container{position:relative;width:100vw;height:100vh}/* ---------- Video ---------- */ .video-frame{width:100%;height:100%;background:#000;overflow:hidden} .video-frame video{width:100%;height:100%;object-fit:cover}
+    :root {
+      --bg-black: #000;
+      --badge-red: #d92b2b;
+      --ticker-red1: #8b0000;
+      --ticker-red2: #5c0000;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    html, body {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background: var(--bg-black);
+    }
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: Arial, sans-serif;
+    }
 
-/* ---------- LIVE Badge ---------- */ .live-badge{position:absolute;top:10px;right:20px;display:flex;align-items:center;gap:6px;background:var(--badge-red);color:#fff;padding:4px 10px;border-radius:6px;font-size:13px;font-weight:bold;z-index:20} .live-dot{width:10px;height:10px;border-radius:50%;background:#fff;animation:pulse 1.2s infinite} @keyframes pulse{0%{transform:scale(1);opacity:1}50%{transform:scale(1.4);opacity:.6}100%{transform:scale(1);opacity:1}}
+    .container {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+    }
 
-/* ---------- Score Bar ---------- */ .score-bar{position:absolute;top:15px;left:50%;transform:translateX(-50%);background:linear-gradient(to bottom,#d02020,#a00000);color:#fff;border-radius:10px;padding:8px 20px;font-size:14px;text-align:center;z-index:20;display:flex;align-items:center;gap:18px;box-shadow:0 2px 6px rgba(0,0,0,.4)} .team-label{font-size:14px;text-transform:uppercase;font-weight:bold;user-select:none} .score{font-size:28px;font-weight:900;cursor:pointer;user-select:none;line-height:1} .timer{font-size:20px;font-weight:bold;background:#111;padding:4px 12px;border-radius:4px;color:#0f0;font-family:"Courier New",monospace;cursor:pointer;user-select:none;line-height:1}
+    /* ---------- Video ---------- */
+    .video-frame {
+      width: 100%;
+      height: 100%;
+      background: #000;
+      overflow: hidden;
+    }
+    .video-frame video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
 
-/* ---------- Logos ---------- */ .team-logo{height:44px;width:auto;object-fit:contain;filter:drop-shadow(0 0 3px #fff) drop-shadow(0 0 6px #fff)}
+    /* ---------- LIVE Badge ---------- */
+    .live-badge {
+      position: absolute;
+      top: 10px;
+      right: 20px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--badge-red);
+      color: #fff;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: bold;
+      z-index: 20;
+    }
+    .live-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #fff;
+      animation: pulse 1.2s infinite;
+    }
+    @keyframes pulse {
+      0% { transform: scale(1); opacity:1; }
+      50% { transform: scale(1.4); opacity:0.6; }
+      100% { transform: scale(1); opacity:1; }
+    }
 
-/* ---------- Overlay Screens ---------- */ .overlay-screen{position:absolute;inset:0;display:none;justify-content:center;align-items:center;background:rgba(0,0,0,.7) center/cover no-repeat;z-index:15} .overlay-screen.show{display:flex}
+    /* ---------- Score Bar ---------- */
+    .score-bar {
+      position: absolute;
+      top: 15px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(to bottom, #d02020, #a00000);
+      color: #fff;
+      border-radius: 10px;
+      padding: 8px 20px;
+      font-size: 14px;
+      text-align: center;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+    }
+    .team-label {
+      font-size: 14px;
+      text-transform: uppercase;
+      font-weight: bold;
+      user-select: none;
+    }
+    .score {
+      font-size: 28px;
+      font-weight: 900;
+      cursor: pointer;
+      user-select: none;
+      line-height: 1;
+    }
+    .timer {
+      font-size: 20px;
+      font-weight: bold;
+      background: #111;
+      padding: 4px 12px;
+      border-radius: 4px;
+      color: #0f0;
+      font-family: "Courier New", monospace;
+      cursor: pointer;
+      user-select: none;
+      line-height: 1;
+    }
 
-.overlay-card{background:rgba(255,255,255,.1);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);padding:20px 40px;border-radius:16px;text-align:center;color:#fff;border:1px solid rgba(255,255,255,.3);box-shadow:0 8px 24px rgba(0,0,0,.6),0 0 12px rgba(255,255,255,.15);transform:scale(.9);transition:transform .6s ease,opacity .6s ease} .overlay-screen.show .overlay-card{transform:scale(1)}
+    /* ---------- Logos (inside score bar with glow) ---------- */
+    .team-logo {
+      height: 44px; /* equal to score bar height */
+      width: auto;
+      object-fit: contain;
+      filter: drop-shadow(0 0 3px #fff) drop-shadow(0 0 6px #fff);
+    }
 
-.overlay-card h2{font-size:32px;margin-bottom:20px;text-transform:uppercase;font-weight:900;letter-spacing:2px;background:linear-gradient(90deg,#ffd700,#ff8c00,#ffd700);background-size:200% auto;color:transparent;-webkit-background-clip:text;background-clip:text;text-shadow:0 0 8px rgba(255,215,0,.8),0 0 16px rgba(255,140,0,.6);animation:shine 3s linear infinite} @keyframes shine{0%{background-position:0% center}100%{background-position:200% center}}
+    /* ---------- Overlay Screens ---------- */
+    .overlay-screen {
+      position: absolute;
+      inset: 0;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      background: rgba(0,0,0,0.7) center/cover no-repeat;
+      z-index: 15;
+    }
+    .overlay-screen.show { display: flex; }
 
-.overlay-teams{display:flex;justify-content:center;align-items:center;gap:40px} .overlay-team{display:flex;flex-direction:column;align-items:center;color:#fff;font-weight:bold} .overlay-team img{width:70px;height:70px;object-fit:contain;margin-bottom:8px} .overlay-score{font-size:42px;font-weight:900;margin:0 10px}
+    .overlay-card {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      padding: 20px 40px;
+      border-radius: 16px;
+      text-align: center;
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.3);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.6), 0 0 12px rgba(255,255,255,0.15);
+      transform: scale(0.9);
+      transition: transform 0.6s ease, opacity 0.6s ease;
+    }
+    .overlay-screen.show .overlay-card { transform: scale(1); }
 
-/* ---------- Coming Soon Card ---------- / .coming-card{padding:24px 50px;} / Height 20% less than normal: squash vertically only when visible / .overlay-screen.show .overlay-card.coming-card{transform:scale(1,.82)!important} .league-line{font-size:16px;font-weight:700;margin-bottom:6px} .date-line{font-size:14px;opacity:.9;margin-bottom:14px} .countdown-wrap{margin-top:16px;display:flex;justify-content:center} #countdownCanvas{background:transparent;width:160px;height:160px} / hide external countdown text holder to keep DOM same but show time inside circle */ #countdownText{display:none}
+    .overlay-card h2 {
+      font-size: 32px;
+      margin-bottom: 20px;
+      text-transform: uppercase;
+      font-weight: 900;
+      letter-spacing: 2px;
+      background: linear-gradient(90deg, #ffd700, #ff8c00, #ffd700);
+      background-size: 200% auto;
+      color: transparent;
+      -webkit-background-clip: text;
+      background-clip: text;
+      text-shadow: 0 0 8px rgba(255, 215, 0, 0.8),
+                   0 0 16px rgba(255, 140, 0, 0.6);
+      animation: shine 3s linear infinite;
+    }
+    @keyframes shine {
+      0% { background-position: 0% center; }
+      100% { background-position: 200% center; }
+    }
+    .overlay-teams {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 40px;
+    }
+    .overlay-team {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: #fff;
+      font-weight: bold;
+    }
+    .overlay-team img {
+      width: 70px;
+      height: 70px;
+      object-fit: contain;
+      margin-bottom: 8px;
+    }
+    .overlay-score {
+      font-size: 42px;
+      font-weight: 900;
+      margin: 0 10px;
+    }
 
-/* ---------- Settings ---------- */ .settings-btn{position:absolute;bottom:15px;right:15px;font-size:22px;background:#fff;border-radius:50%;padding:6px 10px;cursor:pointer;z-index:30;user-select:none} .settings-panel{position:absolute;top:10%;left:50%;transform:translateX(-50%);width:90%;max-width:450px;background:#fff;padding:14px;border-radius:10px;display:none;z-index:40;max-height:80vh;overflow-y:auto} .settings-panel input{width:100%;margin:6px 0 10px} .close-btn{position:absolute;top:6px;right:10px;cursor:pointer;font-size:20px;user-select:none}
+    /* ---------- Settings ---------- */
+    .settings-btn {
+      position: absolute;
+      bottom: 15px;
+      right: 15px;
+      font-size: 22px;
+      background: #fff;
+      border-radius: 50%;
+      padding: 6px 10px;
+      cursor: pointer;
+      z-index: 30;
+      user-select: none;
+    }
+    .settings-panel {
+      position: absolute;
+      top: 10%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 90%;
+      max-width: 450px;
+      background: #fff;
+      padding: 14px;
+      border-radius: 10px;
+      display: none;
+      z-index: 40;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+    .settings-panel input { width:100%; margin:6px 0 10px; }
+    .settings-panel .panel-btns { display:flex; gap:8px; margin-top:6px; flex-wrap:wrap; }
+    .settings-panel button { padding:8px 12px; border-radius:6px; border:1px solid #ccc; background:#fff; cursor:pointer; }
+    .close-btn {
+      position: absolute;
+      top: 6px;
+      right: 10px;
+      cursor: pointer;
+      font-size: 20px;
+      user-select: none;
+    }
 
-/* ---------- Mobile / Settings / Coming Soon fixes ---------- / / make settings panel smooth-scrollable on mobile and keep it within viewport / .settings-panel{ -webkit-overflow-scrolling: touch; / momentum scrolling on iOS/WebKit / touch-action: pan-y;               / allow vertical pan to scroll panel / overscroll-behavior: contain;     / don't let overscroll bubble to parent / max-height: calc(100vh - 40px);   / keep breathing room from top/bottom / overflow-y: auto;                 / ensure vertical scroll */ }
+    /* ---------- NEW: Match Simulation (under LIVE) ---------- */
+    .match-simulation {
+      position: absolute;
+      right: 20px;
+      color: rgba(255,255,255,0.8);
+      text-transform: uppercase;
+      font-weight: 900;
+      letter-spacing: 1px;
+      z-index: 20;
+      user-select: none;
+      text-shadow: 0 0 6px rgba(255,255,255,0.6), 0 0 12px rgba(255,255,255,0.35);
+      /* top/height/font-size set dynamically via JS to match LIVE badge */
+    }
 
-/* smaller visual scrollbar (optional, helps UX on Android browsers) */ .settings-panel::-webkit-scrollbar{ width:8px; } .settings-panel::-webkit-scrollbar-thumb{ border-radius:8px; background:rgba(0,0,0,0.12); }
+    /* ---------- NEW: Bottom Ticker ---------- */
+    .ticker {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 44px;
+      background: linear-gradient(to bottom, var(--ticker-red1), var(--ticker-red2));
+      color: #fff;
+      overflow: hidden;
+      z-index: 25;
+      border-top: 1px solid rgba(255,255,255,0.2);
+      pointer-events: none; /* so it doesn't block clicks */
+    }
+    /* track will be moved by JS (no CSS animation) */
+    .ticker-track {
+      position: absolute;
+      top: 0;
+      left: 0;
+      white-space: nowrap;
+      will-change: transform;
+      transform: translateX(0);
+      text-transform: uppercase;
+      font-weight: 900;
+      letter-spacing: 1px;
+      line-height: 44px;
+      text-shadow: 0 0 6px rgba(255,255,255,0.7), 0 0 14px rgba(255,255,255,0.45);
+      font-size: 20px;
+      padding: 0 8px;
+      display: inline-block;
+    }
+    .ticker-track .sep { margin: 0 20px; opacity: 0.9; }
 
-/* ensure Coming Soon card scales from top (so vertical squash looks natural) */ .overlay-card.coming-card{ transform-origin: center top; }
-
-/* Default smaller countdown circle so overall card is less tall on small screens */ #countdownCanvas{ width:160px; height:160px; }
-
-/* Special adjustments for mobile in landscape (Android phones) / @media screen and (max-width: 900px) and (orientation: landscape) { / reduce Coming Soon card height and padding / .overlay-screen#comingScreen .overlay-card.coming-card{ transform: scale(1, 0.72) !important; / squash vertically a bit more */ padding: 14px 22px; border-radius: 12px; }
-
-/* make the countdown circle smaller to save vertical space */ #countdownCanvas{ width: 140px; height: 140px; }
-
-/* slightly smaller team logos & text inside the coming card */ .overlay-team img{ width:56px; height:56px; } .overlay-score{ font-size:34px; }
-
-/* push the score bar lower to avoid notches and give a top gap / .score-bar{ top: calc(28px + env(safe-area-inset-top)); / uses safe-area if available */ padding: 6px 14px; gap: 12px; }
-
-/* slightly reduce sizes in the score bar to fit landscape better */ .team-logo{ height:36px; } .score{ font-size:22px; } .timer{ font-size:18px; }
-
-/* place settings panel a little lower and allow more vertical room */ .settings-panel{ top: 6vh; max-height: 88vh; width: 94%; max-width: 520px; } }
-
-/* small helper for touch targets */ button{touch-action:manipulation}
-
+    @media (max-width: 600px) {
+      .ticker { height: 36px; }
+      .ticker-track { line-height: 36px; font-size: 16px; }
+    }
   </style>
 </head>
 <body>
@@ -58,332 +296,315 @@
       <video id="gameVideo" autoplay loop muted playsinline>
         <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
       </video>
-    </div><!-- Live badge & Score bar -->
-<div class="live-badge"><div class="live-dot"></div>LIVE</div>
-<div class="score-bar" id="scoreBar">
-  <img id="logoA" src="https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg" class="team-logo" alt="Team A Logo"/>
-  <div class="team-label" id="teamALabel">HOME TEAM</div>
-  <div class="score"><span id="scoreA">0</span></div>
-  <div class="timer" id="timer">00:00</div>
-  <div class="score"><span id="scoreB">0</span></div>
-  <div class="team-label" id="teamBLabel">AWAY TEAM</div>
-  <img id="logoB" src="https://upload.wikimedia.org/wikipedia/en/4/47/FC_Barcelona_%28crest%29.svg" class="team-logo" alt="Team B Logo"/>
-</div><!-- Half/Full Overlay (original) --><div class="overlay-screen" id="overlayScreen">
-  <div class="overlay-card" id="hfCard">
-    <h2 id="overlayTitle">HALF TIME</h2>
-    <div class="overlay-teams">
-      <div class="overlay-team">
-        <img id="overlayLogoA" src="" alt=""/>
-        <div id="overlayNameA"></div>
+    </div>
+
+    <!-- Live badge & Score bar -->
+    <div class="live-badge" id="liveBadge"><div class="live-dot"></div>LIVE</div>
+
+    <!-- NEW: Fixed text under LIVE -->
+    <div class="match-simulation" id="matchSimText">Match Simulation</div>
+
+    <div class="score-bar">
+      <img id="logoA" src="https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg" class="team-logo" />
+      <div class="team-label" id="teamALabel">HOME TEAM</div>
+      <div class="score"><span id="scoreA">0</span></div>
+      <div class="timer" id="timer">00:00</div>
+      <div class="score"><span id="scoreB">0</span></div>
+      <div class="team-label" id="teamBLabel">AWAY TEAM</div>
+      <img id="logoB" src="https://upload.wikimedia.org/wikipedia/en/4/47/FC_Barcelona_%28crest%29.svg" class="team-logo" />
+    </div>
+
+    <!-- Overlay -->
+    <div class="overlay-screen" id="overlayScreen">
+      <div class="overlay-card">
+        <h2 id="overlayTitle">HALF TIME</h2>
+        <div class="overlay-teams">
+          <div class="overlay-team">
+            <img id="overlayLogoA" src="">
+            <div id="overlayNameA"></div>
+          </div>
+          <div class="overlay-score" id="overlayScore"></div>
+          <div class="overlay-team">
+            <img id="overlayLogoB" src="">
+            <div id="overlayNameB"></div>
+          </div>
+        </div>
       </div>
-      <div class="overlay-score" id="overlayScore"></div>
-      <div class="overlay-team">
-        <img id="overlayLogoB" src="" alt=""/>
-        <div id="overlayNameB"></div>
+    </div>
+
+    <!-- Music Player -->
+    <audio id="bgMusic" loop></audio>
+
+    <!-- NEW: Bottom Ticker -->
+    <div class="ticker" id="ticker">
+      <div class="ticker-track" id="tickerTrack"></div>
+    </div>
+
+    <!-- Settings -->
+    <div class="settings-btn" id="openSettingsBtn">⚙️</div>
+    <div class="settings-panel" id="settingsPanel">
+      <div class="close-btn" id="closeSettingsBtn">×</div>
+      <h3>Settings</h3>
+      <label>Team A Name</label><input type="text" id="inputTeamA" />
+      <label>Team B Name</label><input type="text" id="inputTeamB" />
+      <label>Team A Logo</label><input type="file" id="inputLogoA" accept="image/*" />
+      <label>Team B Logo</label><input type="file" id="inputLogoB" accept="image/*" />
+      <label>Gameplay Video</label><input type="file" id="inputVideo" accept="video/*" />
+      <label>Background Music</label><input type="file" id="inputMusic" accept="audio/*" />
+      <label>Overlay Background (Half + Full)</label><input type="file" id="inputOverlayBg" accept="image/*" />
+      <label>Set Timer Start (minutes)</label><input type="number" id="inputTimerMin" min="0" value="0" />
+      <label>Set Timer Start (seconds)</label><input type="number" id="inputTimerSec" min="0" max="59" value="0" />
+
+      <!-- NEW: Ticker Text -->
+      <label>Bottom Ticker Text</label>
+      <input type="text" id="inputTickerText" placeholder="e.g., BREAKING NEWS • TRANSFER UPDATES • MATCH BUILD-UP" />
+
+      <div class="panel-btns">
+        <button id="applyBtn">Apply</button>
+        <button id="showComingBtn">Show Coming Soon</button>
       </div>
     </div>
   </div>
-</div><!-- Coming Soon Overlay (separate) --><div class="overlay-screen" id="comingScreen">
-  <div class="overlay-card coming-card" id="comingCard">
-    <div class="league-line" id="comingLeague">LEAGUE NAME</div>
-    <div class="date-line" id="comingDate">DATE</div>
-    <h2>COMING SOON</h2>
-    <div class="overlay-teams">
-      <div class="overlay-team">
-        <img id="comingLogoA" src="" alt=""/>
-        <div id="comingNameA"></div>
-      </div>
-      <div class="overlay-score">VS</div>
-      <div class="overlay-team">
-        <img id="comingLogoB" src="" alt=""/>
-        <div id="comingNameB"></div>
-      </div>
-    </div>
-    <div class="countdown-wrap">
-      <div style="display:flex;flex-direction:column;align-items:center;">
-        <canvas id="countdownCanvas" width="160" height="160"></canvas>
-        <div id="countdownText">00:00</div>
-      </div>
-    </div>
-  </div>
-</div><!-- Music Player --><audio id="bgMusic" loop></audio>
 
-<!-- Settings --><div class="settings-btn" id="openSettingsBtn" title="Open settings">⚙️</div>
-<div class="settings-panel" id="settingsPanel" role="dialog" aria-label="Settings panel">
-  <div class="close-btn" id="closeSettingsBtn" title="Close">×</div>
-  <h3>Settings</h3>
-  <label>Team A Name</label><input type="text" id="inputTeamA" />
-  <label>Team B Name</label><input type="text" id="inputTeamB" />
-  <label>Team A Logo</label><input type="file" id="inputLogoA" accept="image/*" />
-  <label>Team B Logo</label><input type="file" id="inputLogoB" accept="image/*" />
-  <label>Gameplay Video</label><input type="file" id="inputVideo" accept="video/*" />
-  <label>Background Music</label><input type="file" id="inputMusic" accept="audio/*" />
-  <label>Overlay Background (Half + Full)</label><input type="file" id="inputOverlayBg" accept="image/*" />
-  <label>Set Timer Start (minutes)</label><input type="number" id="inputTimerMin" min="0" value="0" />
-  <label>Set Timer Start (seconds)</label><input type="number" id="inputTimerSec" min="0" max="59" value="0" />
-  <label>League Name</label><input type="text" id="inputLeague" placeholder="UEFA Champions League" />
-  <label>Match Date</label><input type="date" id="inputDate" />
-  <label>Countdown Minutes</label><input type="number" id="inputCountdownMin" min="0" value="0" />
-  <label>Countdown Seconds</label><input type="number" id="inputCountdownSec" min="0" max="59" value="30" />
-  <button id="applyBtn">Apply</button>
-</div>  </div>  <script>
-    // -------- Core state
-    let scoreA=0, scoreB=0, timer=0, clicks=0, interval=null;
-    let overlayBg=null;// Coming Soon state
-let countdownTotal=0, countdownRemaining=0, countdownInterval=null;
+  <script>
+    // Scores & timer
+    let scoreA=0, scoreB=0, timer=0, interval=null;
+    let overlayBg=null;
 
-const a=document.getElementById('scoreA'),
-      b=document.getElementById('scoreB'),
-      t=document.getElementById('timer'),
-      overlay=document.getElementById('overlayScreen'),
-      logoA=document.getElementById('logoA'),
-      logoB=document.getElementById('logoB'),
-      comingScreen=document.getElementById('comingScreen'),
-      cdCanvas=document.getElementById('countdownCanvas'),
-      ctx=cdCanvas.getContext('2d');
+    // state machine for match flow: 'idle' -> 'coming' -> 'firstHalf' -> 'halfTime' -> 'secondHalf' -> 'fullTime'
+    let matchState = 'idle';
 
-// ---------- Utilities
-function formatTime(sec){ return `${String(Math.floor(sec/60)).padStart(2,'0')}:${String(sec%60).padStart(2,'0')}` }
-function updateTimerDisplay(){ t.textContent = formatTime(timer); }
+    const a=document.getElementById("scoreA"),
+          b=document.getElementById("scoreB"),
+          t=document.getElementById("timer"),
+          overlay=document.getElementById("overlayScreen"),
+          logoA=document.getElementById("logoA"),
+          logoB=document.getElementById("logoB");
 
-// ---------- Persistence (localStorage)
-function saveSettings(obj){ try{ localStorage.setItem('scoreAppSettings', JSON.stringify(obj)); }catch(e){ /* ignore */ } }
-function loadSettings(){ try{ const raw = localStorage.getItem('scoreAppSettings'); if(!raw) return; const s = JSON.parse(raw);
-    if(s.nameA) document.getElementById('teamALabel').textContent = s.nameA;
-    if(s.nameB) document.getElementById('teamBLabel').textContent = s.nameB;
-    if(s.logoA) document.getElementById('logoA').src = s.logoA;
-    if(s.logoB) document.getElementById('logoB').src = s.logoB;
-    if(typeof s.timerStartSec === 'number'){ timer = s.timerStartSec; updateTimerDisplay(); }
-    if(typeof s.countdownTotal === 'number'){ countdownTotal = s.countdownTotal; countdownRemaining = s.countdownTotal; }
-    if(s.league) document.getElementById('inputLeague').value = s.league;
-    if(s.matchDate) document.getElementById('inputDate').value = s.matchDate;
-    if(s.overlayBg) overlayBg = s.overlayBg;
-  }catch(e){ /* ignore parse errors */ } }
+    a.onclick=()=>{ scoreA++; a.textContent=scoreA; };
+    b.onclick=()=>{ scoreB++; b.textContent=scoreB; };
 
-// Load saved settings on start
-loadSettings();
+    // Timer click handler - stateful
+    t.onclick = () => {
+      // clear any running match timer when entering overlay states
+      if (matchState === 'idle') {
+        // 1st click -> show Coming Soon (persist until user hides)
+        showComingSoon(overlayBg);
+        matchState = 'coming';
+        if(interval){ clearInterval(interval); interval = null; }
+      }
+      else if (matchState === 'coming') {
+        // user clicked again -> hide Coming Soon and START first half timer
+        overlay.classList.remove('show');
+        // start timer
+        interval = setInterval(()=>{
+          timer++;
+          t.textContent=`${String(Math.floor(timer/60)).padStart(2,"0")}:${String(timer%60).padStart(2,"0")}`;
+        },1000);
+        matchState = 'firstHalf';
+      }
+      else if (matchState === 'firstHalf') {
+        // show HALF TIME overlay & pause timer
+        if(interval){ clearInterval(interval); interval = null; }
+        showOverlay("HALF TIME", overlayBg, false);
+        matchState = 'halfTime';
+      }
+      else if (matchState === 'halfTime') {
+        // hide half-time overlay and start/resume 2nd half timer
+        overlay.classList.remove('show');
+        interval = setInterval(()=>{
+          timer++;
+          t.textContent=`${String(Math.floor(timer/60)).padStart(2,"0")}:${String(timer%60).padStart(2,"0")}`;
+        },1000);
+        matchState = 'secondHalf';
+      }
+      else if (matchState === 'secondHalf') {
+        // show FULL TIME overlay & stop timer
+        if(interval){ clearInterval(interval); interval = null; }
+        showOverlay("FULL TIME", overlayBg, false);
+        matchState = 'fullTime';
+      }
+      else if (matchState === 'fullTime') {
+        // Reset everything
+        if(interval){ clearInterval(interval); interval = null; }
+        matchState = 'idle';
+        timer = 0;
+        scoreA = 0;
+        scoreB = 0;
+        a.textContent = 0;
+        b.textContent = 0;
+        t.textContent = "00:00";
+        overlay.classList.remove('show');
+      }
+    };
 
-// Score clicks (same behaviour)
-a.onclick=()=>{ scoreA++; a.textContent=scoreA; };
-b.onclick=()=>{ scoreB++; b.textContent=scoreB; };
+    // generalized overlay function: isVS true -> show "VS" in center (for Coming Soon)
+    function showOverlay(title, bg, isVS = false){
+      const titleEl = document.getElementById("overlayTitle");
+      const logoAEl = document.getElementById("overlayLogoA");
+      const logoBEl = document.getElementById("overlayLogoB");
+      const nameAEl = document.getElementById("overlayNameA");
+      const nameBEl = document.getElementById("overlayNameB");
+      const scoreEl = document.getElementById("overlayScore");
 
-// allow right-click to decrement for quick fixes (desktop)
-a.addEventListener('contextmenu', (ev)=>{ ev.preventDefault(); if(scoreA>0) scoreA--; a.textContent=scoreA; });
-b.addEventListener('contextmenu', (ev)=>{ ev.preventDefault(); if(scoreB>0) scoreB--; b.textContent=scoreB; });
+      titleEl.textContent = title;
+      logoAEl.src = logoA.src;
+      logoBEl.src = logoB.src;
+      nameAEl.textContent = document.getElementById("teamALabel").textContent;
+      nameBEl.textContent = document.getElementById("teamBLabel").textContent;
 
-// ---------- Overlay (Half/Full)
-function showOverlay(title, bg){
-  document.getElementById('overlayTitle').textContent=title;
-  document.getElementById('overlayLogoA').src=logoA.src;
-  document.getElementById('overlayLogoB').src=logoB.src;
-  document.getElementById('overlayNameA').textContent=document.getElementById('teamALabel').textContent;
-  document.getElementById('overlayNameB').textContent=document.getElementById('teamBLabel').textContent;
-  document.getElementById('overlayScore').textContent=`${scoreA} - ${scoreB}`;
-  overlay.classList.add('show');
-  overlay.style.background = bg ? `url(${bg}) center/cover no-repeat` : 'rgba(0,0,0,0.7)';
-}
+      if(isVS){
+        scoreEl.textContent = "VS";
+      } else {
+        scoreEl.textContent = `${scoreA} - ${scoreB}`;
+      }
 
-// allow clicking outside the card to close overlays
-overlay.addEventListener('click', (e)=>{ if(e.target===overlay) overlay.classList.remove('show'); });
-comingScreen.addEventListener('click', (e)=>{ if(e.target===comingScreen){ comingScreen.classList.remove('show'); if(countdownInterval){ clearInterval(countdownInterval); countdownInterval=null; } } });
-
-// ---------- Countdown canvas drawing & resize handling
-function drawCountdown(){
-  const rect = cdCanvas.getBoundingClientRect();
-  const cssW = rect.width || 160; const cssH = rect.height || 160;
-  const cx = cssW/2, cy = cssH/2;
-  const r = Math.max(8, Math.min(cssW, cssH)/2 - 12);
-
-  // clear in CSS pixels (canvas is scaled via ctx.setTransform)
-  const ratio = window.devicePixelRatio || 1;
-  ctx.clearRect(0,0, cdCanvas.width/ratio, cdCanvas.height/ratio);
-
-  // background ring
-  ctx.beginPath();
-  ctx.arc(cx,cy,r,0,Math.PI*2);
-  ctx.strokeStyle='rgba(255,255,255,0.25)';
-  ctx.lineWidth=10;
-  ctx.stroke();
-
-  // red remaining arc
-  const total = Math.max(countdownTotal,1);
-  const remaining = Math.max(countdownRemaining,0);
-  const percent = remaining/total;
-
-  ctx.beginPath();
-  ctx.arc(cx,cy,r,-Math.PI/2,(Math.PI*2*percent)-Math.PI/2);
-  ctx.strokeStyle='#d92b2b';
-  ctx.lineWidth=10;
-  ctx.lineCap='round';
-  ctx.stroke();
-
-  // time text inside the circle
-  const m=Math.floor(remaining/60), s=remaining%60;
-  const txt=`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-  ctx.fillStyle='#ffffff';
-  // scale font size a bit with canvas size
-  const fontSize = Math.max(18, Math.min(36, Math.floor(r*0.6)));
-  ctx.font=`bold ${fontSize}px "Courier New", monospace`;
-  ctx.textAlign='center';
-  ctx.textBaseline='middle';
-  ctx.fillText(txt, cx, cy);
-}
-
-function resizeCountdownCanvas(){
-  const ratio = window.devicePixelRatio || 1;
-  const rect = cdCanvas.getBoundingClientRect();
-  const cssW = Math.round(rect.width) || 160;
-  const cssH = Math.round(rect.height) || 160;
-  cdCanvas.width = Math.round(cssW * ratio);
-  cdCanvas.height = Math.round(cssH * ratio);
-  cdCanvas.style.width = cssW + 'px';
-  cdCanvas.style.height = cssH + 'px';
-  // set transform so drawing uses CSS pixels
-  ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
-  // clear then redraw
-  ctx.clearRect(0,0, cdCanvas.width/ratio, cdCanvas.height/ratio);
-  drawCountdown();
-}
-
-window.addEventListener('resize', resizeCountdownCanvas);
-window.addEventListener('orientationchange', ()=> setTimeout(resizeCountdownCanvas, 200));
-setTimeout(resizeCountdownCanvas, 60);
-
-// ---------- Coming Soon (canvas countdown)
-function showComing(){
-  // Fill teams/logos
-  document.getElementById('comingLogoA').src=logoA.src;
-  document.getElementById('comingLogoB').src=logoB.src;
-  document.getElementById('comingNameA').textContent=document.getElementById('teamALabel').textContent;
-  document.getElementById('comingNameB').textContent=document.getElementById('teamBLabel').textContent;
-
-  // League & Date
-  const league=document.getElementById('inputLeague').value.trim()||'LEAGUE';
-  const dateVal=document.getElementById('inputDate').value||'DATE TBD';
-  document.getElementById('comingLeague').textContent=league;
-  document.getElementById('comingDate').textContent=dateVal;
-
-  comingScreen.classList.add('show'); // perfectly centered by flex
-  resizeCountdownCanvas(); // ensure crisp
-
-  if(countdownInterval) clearInterval(countdownInterval);
-  // start countdown
-  countdownInterval=setInterval(()=>{
-    if(countdownRemaining>0){
-      countdownRemaining--; drawCountdown();
-    } else {
-      clearInterval(countdownInterval); countdownInterval=null; drawCountdown();
-      // auto-start match shortly after countdown ends
-      setTimeout(()=>{
-        try{ comingScreen.classList.remove('show'); }catch(e){}
-        clicks = Math.max(clicks,2); // reflect we've progressed
-        startMatchTimer();
-      }, 350);
+      overlay.classList.add("show");
+      overlay.style.background = bg ? `url(${bg}) center/cover no-repeat` : "rgba(0,0,0,0.7)";
     }
-  },1000);
-}
 
-// ---------- Timer control & click flow
-function startMatchTimer(){
-  if(countdownInterval){ clearInterval(countdownInterval); countdownInterval=null; }
-  if(interval) clearInterval(interval);
-  interval = setInterval(()=>{ timer++; updateTimerDisplay(); },1000);
-}
+    // Coming Soon helper: shows overlay and sets state to 'coming'
+    function showComingSoon(bg){
+      showOverlay("COMING SOON", bg, true);
+      matchState = 'coming';
+      // do NOT auto-hide and do NOT start timer — wait for user to click timer again
+    }
 
-function stopMatchTimer(){ if(interval){ clearInterval(interval); interval=null; } }
+    // ---------- Settings ----------
+    const openBtn=document.getElementById("openSettingsBtn"),
+          closeBtn=document.getElementById("closeSettingsBtn"),
+          panel=document.getElementById("settingsPanel"),
+          showComingBtn=document.getElementById("showComingBtn");
+    openBtn.onclick=()=>panel.style.display="block";
+    closeBtn.onclick=()=>panel.style.display="none";
+    // settings "Show Coming Soon" button should mimic first-click behavior
+    showComingBtn.onclick=()=> showComingSoon(overlayBg);
 
-function resetAll(){ clicks=0; timer=0; scoreA=0; scoreB=0; a.textContent=0; b.textContent=0; updateTimerDisplay(); overlay.classList.remove('show'); comingScreen.classList.remove('show'); if(interval) clearInterval(interval); if(countdownInterval) clearInterval(countdownInterval); interval=null; countdownInterval=null; }
+    document.getElementById("applyBtn").onclick=()=>{
+      document.getElementById("teamALabel").textContent =
+        document.getElementById("inputTeamA").value || "HOME TEAM";
+      document.getElementById("teamBLabel").textContent =
+        document.getElementById("inputTeamB").value || "AWAY TEAM";
 
-t.onclick=()=>{
-  clicks++;
-  // clear running intervals to avoid duplicates; we start them as needed
-  if(interval){ clearInterval(interval); interval=null; }
-  if(countdownInterval){ clearInterval(countdownInterval); countdownInterval=null; }
+      const logoAFile=document.getElementById("inputLogoA").files[0];
+      if(logoAFile) logoA.src=URL.createObjectURL(logoAFile);
 
-  if(clicks===1){ // Coming Soon card
-    showComing();
-  }
-  else if(clicks===2){ // Start match from configured timer
-    comingScreen.classList.remove('show');
-    startMatchTimer();
-  }
-  else if(clicks===3){ // Half Time
-    showOverlay('HALF TIME', overlayBg);
-  }
-  else if(clicks===4){ // 2nd Half (continue)
-    overlay.classList.remove('show');
-    startMatchTimer();
-  }
-  else if(clicks===5){ // Full Time
-    showOverlay('FULL TIME', overlayBg);
-  }
-  else if(clicks===6){ // Reset
-    resetAll();
-  }
-};
+      const logoBFile=document.getElementById("inputLogoB").files[0];
+      if(logoBFile) logoB.src=URL.createObjectURL(logoBFile);
 
-// also allow double-click to toggle pause/resume while match running
-t.ondblclick = (e)=>{
-  e.preventDefault();
-  if(interval){ stopMatchTimer(); }
-  else { startMatchTimer(); }
-};
+      const vid=document.getElementById("inputVideo").files[0];
+      if(vid) document.getElementById("gameVideo").src=URL.createObjectURL(vid);
 
-// ---------- Settings panel
-const openBtn=document.getElementById('openSettingsBtn'),
-      closeBtn=document.getElementById('closeSettingsBtn'),
-      panel=document.getElementById('settingsPanel');
+      const music=document.getElementById("inputMusic").files[0];
+      if(music) {
+        const audio=document.getElementById("bgMusic");
+        audio.src=URL.createObjectURL(music);
+        audio.muted=false;
+        audio.play().catch(err=>console.log("Autoplay blocked:",err));
+      }
 
-openBtn.onclick=()=>panel.style.display='block';
-closeBtn.onclick=()=>panel.style.display='none';
+      const overlayFile=document.getElementById("inputOverlayBg").files[0];
+      if(overlayFile) overlayBg=URL.createObjectURL(overlayFile);
 
-function fileToDataURL(file, callback){ const reader = new FileReader(); reader.onload = ()=> callback(reader.result); reader.readAsDataURL(file); }
+      const min=parseInt(document.getElementById("inputTimerMin").value)||0;
+      const sec=parseInt(document.getElementById("inputTimerSec").value)||0;
+      timer=min*60+sec;
+      t.textContent=`${String(min).padStart(2,"0")}:${String(sec).padStart(2,"0")}`;
 
-document.getElementById('applyBtn').onclick=()=>{
-  // Names
-  const nameA=document.getElementById('inputTeamA').value.trim();
-  const nameB=document.getElementById('inputTeamB').value.trim();
-  if(nameA) document.getElementById('teamALabel').textContent=nameA; else document.getElementById('teamALabel').textContent='HOME TEAM';
-  if(nameB) document.getElementById('teamBLabel').textContent=nameB; else document.getElementById('teamBLabel').textContent='AWAY TEAM';
+      // Update ticker text from settings
+      const tickerInput = document.getElementById("inputTickerText").value.trim();
+      if (tickerInput) setTickerText(tickerInput);
 
-  // Logos (store as dataURL if provided)
-  const logoAFile=document.getElementById('inputLogoA').files[0];
-  const logoBFile=document.getElementById('inputLogoB').files[0];
-  const overlayFile=document.getElementById('inputOverlayBg').files[0];
+      // Reposition "Match Simulation" in case layout changed
+      positionMatchSimulation();
 
-  const toSave = { nameA: nameA||'', nameB: nameB||'', league: document.getElementById('inputLeague').value||'', matchDate: document.getElementById('inputDate').value||'', timerStartSec: (parseInt(document.getElementById('inputTimerMin').value)||0)*60 + (parseInt(document.getElementById('inputTimerSec').value)||0), countdownTotal: (parseInt(document.getElementById('inputCountdownMin').value)||0)*60 + (parseInt(document.getElementById('inputCountdownSec').value)||0) };
+      panel.style.display="none";
+    };
 
-  // read logos async; when done save to localStorage
-  const maybeFinishSave = ()=>{ try{ // ensure countdown values updated in memory
-      countdownTotal = toSave.countdownTotal; countdownRemaining = countdownTotal; timer = toSave.timerStartSec; updateTimerDisplay(); saveSettings(toSave);
-    }catch(e){}
-  };
+    /* ---------- Match Simulation placement under LIVE ---------- */
+    function positionMatchSimulation(){
+      const live = document.getElementById('liveBadge');
+      const sim  = document.getElementById('matchSimText');
+      if(!live || !sim) return;
 
-  if(logoAFile){ fileToDataURL(logoAFile, (data)=>{ document.getElementById('logoA').src = data; toSave.logoA = data; saveSettings(toSave); }); }
-  if(logoBFile){ fileToDataURL(logoBFile, (data)=>{ document.getElementById('logoB').src = data; toSave.logoB = data; saveSettings(toSave); }); }
-  if(overlayFile){ fileToDataURL(overlayFile, (data)=>{ overlayBg = data; toSave.overlayBg = data; saveSettings(toSave); }); }
+      const cs = getComputedStyle(live);
+      const liveTop = parseFloat(cs.top) || 0;
+      const h = live.offsetHeight; // live badge height
 
-  // Video
-  const vid=document.getElementById('inputVideo').files[0];
-  if(vid) document.getElementById('gameVideo').src = URL.createObjectURL(vid);
+      // Gap equal to live badge height -> top = liveTop + h (bottom) + h (gap)
+      sim.style.top = (liveTop + h + h) + 'px';
 
-  // Music
-  const music=document.getElementById('inputMusic').files[0];
-  if(music){ const audio=document.getElementById('bgMusic'); audio.src=URL.createObjectURL(music); audio.muted=false; audio.play().catch(()=>{}); }
+      // Make text height & size visually tied to LIVE badge height
+      sim.style.height = h + 'px';
+      sim.style.lineHeight = h + 'px';
+      sim.style.fontSize = Math.max(12, Math.round(h * 0.60)) + 'px';
+    }
 
-  // final save & update timer + countdown
-  maybeFinishSave();
+    /* ---------- Bottom Ticker JS Loop (single sentence -> restart immediately when ends) ---------- */
+    const ticker = document.getElementById('ticker');
+    const track  = document.getElementById('tickerTrack');
+    let tickerAnimId = null;
+    let tickerDurationSec = 60; // SPEED DOUBLED earlier -> now 60s (faster & readable)
 
-  panel.style.display='none';
-};
+    // start animation loop using rAF for precise restart behavior
+    function startTickerLoop(durationSec = tickerDurationSec){
+      cancelTickerLoop();
+      if(!ticker || !track) return;
 
-// ---------- Init small helpers
-// ensure timer text shows initial timer
-updateTimerDisplay();
+      const containerW = ticker.offsetWidth;
+      const textW = Math.max(1, track.scrollWidth);
+      let x = containerW;
+      const totalDistance = containerW + textW;
+      const speed = totalDistance / Math.max(0.1, durationSec); // px per second
 
-// redraw countdown in case we had saved values
-resizeCountdownCanvas();
+      let lastTs = null;
+      function step(ts){
+        if(!lastTs) lastTs = ts;
+        const delta = (ts - lastTs)/1000;
+        lastTs = ts;
+        x -= speed * delta;
+        if (x <= -textW) {
+          x = containerW; // immediate restart from right
+        }
+        track.style.transform = `translateX(${Math.round(x)}px)`;
+        tickerAnimId = requestAnimationFrame(step);
+      }
+      tickerAnimId = requestAnimationFrame(step);
+    }
+    function cancelTickerLoop(){
+      if(tickerAnimId){ cancelAnimationFrame(tickerAnimId); tickerAnimId = null; }
+    }
 
-</script></body>
+    function setTickerText(text){
+      const clean = (text || '').toUpperCase().trim();
+      const display = clean || 'BREAKING NEWS • MATCH UPDATES • TRANSFER ALERTS';
+      // single sentence
+      track.innerHTML = display;
+      // allow DOM update then start
+      setTimeout(()=> startTickerLoop(tickerDurationSec), 20);
+    }
 
+    // restart on resize so widths recalc
+    let resizeTimer = null;
+    window.addEventListener('resize', ()=>{
+      positionMatchSimulation();
+      if(resizeTimer) clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(()=> {
+        startTickerLoop(tickerDurationSec);
+      }, 120);
+    });
+
+    // Initialize after DOM ready
+    window.addEventListener('load', ()=>{
+      positionMatchSimulation();
+      setTickerText('BREAKING NEWS • LIVE COMMENTARY • MATCH BUILD-UP');
+    });
+
+    // pause/resume on visibility change to save CPU
+    document.addEventListener('visibilitychange', ()=>{
+      if(document.hidden) cancelTickerLoop();
+      else startTickerLoop(tickerDurationSec);
+    });
+  </script>
+</body>
 </html>

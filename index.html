@@ -1,310 +1,213 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, orientation=landscape" />
-  <title>Football Score App</title>
-  <style>
-    :root {
-      --bg-black: #000;
-      --badge-red: #d92b2b;
-      --ticker-red1: #8b0000;
-      --ticker-red2: #5c0000;
+  <title>Football Score App — Professional Timer & Broadcast Celebration</title>  <!-- Roboto Condensed for ticker only (online font) -->  <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700;900&display=swap" rel="stylesheet">  <style>
+    :root{
+      --bg-black:#000;
+      --badge-red:#d92b2b;
+      --ticker-deep1:#c21a1a;
+      --ticker-deep2:#9a0f0f;
+      --ticker-height:44px;
     }
-    * { margin:0; padding:0; box-sizing:border-box; }
-    html, body {
-      width: 100vw;
-      height: 100vh;
-      overflow: hidden;
-      background: var(--bg-black);
-    }
-    body {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-family: Arial, sans-serif;
-    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{width:100vw;height:100vh;background:var(--bg-black);overflow:hidden}
+    body{display:flex;align-items:center;justify-content:center;font-family:Arial,Helvetica,sans-serif}
+    .container{position:relative;width:100vw;height:100vh}
 
-    .container {
-      position: relative;
-      width: 100vw;
-      height: 100vh;
-    }
+    /* Video */
+    .video-frame{width:100%;height:100%;background:#000;overflow:hidden}
+    .video-frame video{width:100%;height:100%;object-fit:cover}
 
-    /* ---------- Video ---------- */
-    .video-frame {
-      width: 100%;
-      height: 100%;
-      background: #000;
-      overflow: hidden;
+    /* LIVE Badge */
+    .live-badge{
+      position:absolute;top:10px;right:20px;display:flex;align-items:center;gap:6px;
+      background:var(--badge-red);color:#fff;padding:4px 10px;border-radius:6px;font-size:13px;font-weight:bold;z-index:20;
     }
-    .video-frame video {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
+    .live-dot{width:10px;height:10px;border-radius:50%;background:#fff;animation:pulse 1.2s infinite}
+    @keyframes pulse{0%{transform:scale(1);opacity:1}50%{transform:scale(1.4);opacity:.6}100%{transform:scale(1);opacity:1}}
 
-    /* ---------- LIVE Badge ---------- */
-    .live-badge {
-      position: absolute;
-      top: 10px;
-      right: 20px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      background: var(--badge-red);
+    /* Score bar */
+    .score-bar{
+      position:absolute;top:15px;left:50%;transform:translateX(-50%);
+      background:linear-gradient(to bottom,#d02020,#a00000);color:#fff;border-radius:10px;padding:8px 20px;
+      font-size:14px;text-align:center;z-index:20;display:flex;align-items:center;gap:18px;box-shadow:0 2px 6px rgba(0,0,0,.4)
+    }
+    .team-label{font-size:14px;text-transform:uppercase;font-weight:bold;user-select:none}
+    .score{font-size:28px;font-weight:900;cursor:pointer;user-select:none;line-height:1}
+
+    /* PROFESSIONAL TIMER - glassmorphism / badge style */
+    .timer{
+      font-size:20px;font-weight:800;
+      background: rgba(10,10,10,0.55);
       color: #fff;
-      padding: 4px 10px;
-      border-radius: 6px;
-      font-size: 13px;
-      font-weight: bold;
-      z-index: 20;
-    }
-    .live-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: #fff;
-      animation: pulse 1.2s infinite;
-    }
-    @keyframes pulse {
-      0% { transform: scale(1); opacity:1; }
-      50% { transform: scale(1.4); opacity:0.6; }
-      100% { transform: scale(1); opacity:1; }
+      padding: 8px 14px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.06);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.6), inset 0 -2px 8px rgba(255,255,255,0.02);
+      font-family: "Roboto Mono", "Courier New", monospace;
+      cursor:pointer;
+      user-select:none;
+      line-height:1;
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      display:inline-block;
+      min-width: 86px;
+      text-align:center;
     }
 
-    /* ---------- Score Bar ---------- */
-    .score-bar {
-      position: absolute;
-      top: 15px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: linear-gradient(to bottom, #d02020, #a00000);
-      color: #fff;
-      border-radius: 10px;
-      padding: 8px 20px;
-      font-size: 14px;
-      text-align: center;
-      z-index: 20;
-      display: flex;
-      align-items: center;
-      gap: 18px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+    .team-logo{height:44px;width:auto;object-fit:contain;filter:drop-shadow(0 0 3px #fff) drop-shadow(0 0 6px #fff)}
+
+    /* Overlays (centered vertically & horizontally) */
+    .overlay-screen{position:absolute;inset:0;display:none;justify-content:center;align-items:center;background:rgba(0,0,0,.7) center/cover no-repeat;z-index:15}
+    .overlay-screen.show{display:flex}
+    .overlay-card{
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      align-items:center;
+
+      background:rgba(255,255,255,.08);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+      padding:20px 40px;border-radius:14px;color:#fff;border:1px solid rgba(255,255,255,.12);
+      box-shadow:0 8px 24px rgba(0,0,0,.6);transform:scale(.96);transition:transform .5s ease,opacity .4s ease;
+      min-width: 320px;
+      max-width: 820px;
+      width: min(86%, 820px);
+      min-height: 200px;
     }
-    .team-label {
-      font-size: 14px;
-      text-transform: uppercase;
-      font-weight: bold;
-      user-select: none;
+    .overlay-screen.show .overlay-card{transform:scale(1)}
+    .overlay-card h2{
+      font-size:32px;margin-bottom:16px;text-transform:uppercase;font-weight:900;letter-spacing:2px;
+      background:linear-gradient(90deg,#ffd700,#ff8c00,#ffd700);background-size:200% auto;color:transparent;
+      -webkit-background-clip:text;background-clip:text;text-shadow:0 0 8px rgba(255,215,0,.8);
+      animation:shine 3s linear infinite
     }
-    .score {
-      font-size: 28px;
-      font-weight: 900;
-      cursor: pointer;
-      user-select: none;
-      line-height: 1;
+    @keyframes shine{0%{background-position:0% center}100%{background-position:200% center}}
+    .overlay-teams{display:flex;gap:36px;align-items:center;justify-content:center}
+    .overlay-team{display:flex;flex-direction:column;align-items:center;font-weight:700;color:#fff}
+    .overlay-team img{width:70px;height:70px;object-fit:contain;margin-bottom:8px}
+    .overlay-score{font-size:42px;font-weight:900;margin:0 10px}
+
+    /* Settings */
+    .settings-btn{position:absolute;bottom:15px;right:15px;font-size:22px;background:#fff;border-radius:50%;padding:6px 10px;cursor:pointer;z-index:30;user-select:none}
+    .settings-panel{
+      position:absolute;top:10%;left:50%;transform:translateX(-50%);width:90%;max-width:480px;background:#fff;padding:14px;border-radius:10px;
+      display:none;z-index:40;max-height:80vh;overflow:auto
     }
-    .timer {
-      font-size: 20px;
-      font-weight: bold;
-      background: #111;
-      padding: 4px 12px;
-      border-radius: 4px;
-      color: #0f0;
-      font-family: "Courier New", monospace;
-      cursor: pointer;
-      user-select: none;
-      line-height: 1;
+    .settings-panel input{width:100%;margin:6px 0 10px}
+    .settings-panel .panel-btns{display:flex;gap:8px;margin-top:6px;flex-wrap:wrap}
+    .settings-panel button{Padding:8px 12px;border-radius:6px;border:1px solid #ccc;background:#fff;cursor:pointer}
+    .close-btn{position:absolute;top:6px;right:10px;cursor:pointer;font-size:20px;user-select:none}
+
+    /* Match Simulation glowing */
+    .match-simulation{
+      position:absolute;right:20px;text-transform:uppercase;font-weight:900;letter-spacing:1px;z-index:20;user-select:none;
+      background:linear-gradient(90deg,#ffb347,#ff6a00,#ffb347);background-size:200% auto;-webkit-background-clip:text;background-clip:text;color:transparent;
+      text-shadow:0 0 6px rgba(255,160,0,.6),0 0 12px rgba(255,110,0,.45);animation:matchGlow 2.6s linear infinite
+    }
+    @keyframes matchGlow{0%{text-shadow:0 0 6px rgba(255,160,0,.6)}50%{text-shadow:0 0 14px rgba(255,200,0,.95)}100%{text-shadow:0 0 6px rgba(255,160,0,.6)}}
+
+    /* ------------------ Professional Ticker (red bar) ------------------ */
+    .ticker{
+      position:absolute;left:0;right:0;bottom:0;height:var(--ticker-height);
+      z-index:25;
+      pointer-events:none;
+      background: linear-gradient(180deg, var(--ticker-deep1), var(--ticker-deep2));
+      border-top: 2px solid rgba(255,255,255,0.06);
+      box-shadow: inset 0 6px 18px rgba(0,0,0,0.35), 0 -2px 8px rgba(0,0,0,0.45);
+      display:block; overflow:hidden;
     }
 
-    /* ---------- Logos (inside score bar with glow) ---------- */
-    .team-logo {
-      height: 44px; /* equal to score bar height */
-      width: auto;
-      object-fit: contain;
-      filter: drop-shadow(0 0 3px #fff) drop-shadow(0 0 6px #fff);
+    /* ticker track uses Roboto Condensed for a compact professional look */
+    .ticker-track{
+      position:absolute;top:0;left:0;display:flex;align-items:center;white-space:nowrap;will-change:transform;transform:translateX(0);
+      font-family: 'Roboto Condensed', Arial, Helvetica, sans-serif;
+      font-weight:700;
+      font-size:18px;
+      color:#fff;
+      text-transform:none; /* we apply Title Case from JS */
+      letter-spacing:0.4px;
+      line-height:var(--ticker-height);
+      padding-left:20px;
+      padding-right:20px;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.6);
     }
 
-    /* ---------- Overlay Screens ---------- */
-    .overlay-screen {
-      position: absolute;
-      inset: 0;
-      display: none;
-      justify-content: center;
-      align-items: center;
-      background: rgba(0,0,0,0.7) center/cover no-repeat;
-      z-index: 15;
-    }
-    .overlay-screen.show { display: flex; }
+    .ticker-item{display:inline-block;padding-right:24px;user-select:none}
 
-    .overlay-card {
-      background: rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      padding: 20px 40px;
-      border-radius: 16px;
-      text-align: center;
-      color: #fff;
-      border: 1px solid rgba(255,255,255,0.3);
-      box-shadow: 0 8px 24px rgba(0,0,0,0.6), 0 0 12px rgba(255,255,255,0.15);
-      transform: scale(0.9);
-      transition: transform 0.6s ease, opacity 0.6s ease;
+    /* Celebration banner (broadcast style) sits centered and above the ticker-track */
+    .celebration-banner{
+      position:absolute;
+      left:50%;
+      top:50%;
+      transform:translate(-50%,-50%) scale(.98);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      z-index:26; /* above ticker track */
+      pointer-events:none;
+      opacity:0; transition:opacity .18s ease, transform .22s cubic-bezier(.2,.9,.25,1);
+      width:100%; box-sizing:border-box; padding:4px 12px;
     }
-    .overlay-screen.show .overlay-card { transform: scale(1); }
+    .celebration-banner.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
 
-    .overlay-card h2 {
-      font-size: 32px;
-      margin-bottom: 20px;
-      text-transform: uppercase;
-      font-weight: 900;
-      letter-spacing: 2px;
-      background: linear-gradient(90deg, #ffd700, #ff8c00, #ffd700);
-      background-size: 200% auto;
-      color: transparent;
+    .celebration-inner{position:relative;display:flex;align-items:center;justify-content:center;padding:6px 24px;border-radius:10px;background:rgba(0,0,0,0.2);border:1px solid rgba(255,255,255,0.06)}
+    .celebration-text{
+      font-weight:900;font-size:20px;color:#fff; /* fallback */
+      text-shadow: 0 6px 16px rgba(0,0,0,0.6);
+      white-space:nowrap;
+      font-family: 'Roboto Condensed', Arial, sans-serif;
+      transform-origin:center;
+      display:inline-block;
+      text-transform:uppercase;
+      letter-spacing:1.6px;
+    }
+
+    /* BROADCAST-STYLE: slide-in + subtle moving shine (gold/white) */
+    @keyframes slideInBroadcast {
+      0% { transform: translateY(26px) scale(.98); opacity: 0; filter: blur(6px); }
+      60% { transform: translateY(-6px) scale(1.02); opacity: 1; filter: blur(0); }
+      100% { transform: translateY(0) scale(1); opacity: 1; filter: blur(0); }
+    }
+    @keyframes broadcastShine {
+      0% { background-position: -160% 0; }
+      100% { background-position: 160% 0; }
+    }
+
+    .celebration-banner.show .celebration-text {
+      /* gradient fill using white + gold for a classy shine */
+      background: linear-gradient(90deg, #ffffff 0%, #ffd700 40%, #ffffff 100%);
+      background-size: 220% auto;
       -webkit-background-clip: text;
-      background-clip: text;
-      text-shadow: 0 0 8px rgba(255, 215, 0, 0.8),
-                   0 0 16px rgba(255, 140, 0, 0.6);
-      animation: shine 3s linear infinite;
-    }
-    @keyframes shine {
-      0% { background-position: 0% center; }
-      100% { background-position: 200% center; }
-    }
-    .overlay-teams {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 40px;
-    }
-    .overlay-team {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+      -webkit-text-fill-color: transparent;
+      /* subtle glow fallback for non-supporting browsers */
       color: #fff;
-      font-weight: bold;
-    }
-    .overlay-team img {
-      width: 70px;
-      height: 70px;
-      object-fit: contain;
-      margin-bottom: 8px;
-    }
-    .overlay-score {
-      font-size: 42px;
-      font-weight: 900;
-      margin: 0 10px;
+      animation: slideInBroadcast .58s cubic-bezier(.22,.9,.28,1) both, broadcastShine 1.8s linear infinite;
     }
 
-    /* ---------- Settings ---------- */
-    .settings-btn {
-      position: absolute;
-      bottom: 15px;
-      right: 15px;
-      font-size: 22px;
-      background: #fff;
-      border-radius: 50%;
-      padding: 6px 10px;
-      cursor: pointer;
-      z-index: 30;
-      user-select: none;
+    /* subtle glowing rays behind banner (keeps classy) */
+    .celebration-rays{
+      position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:520px;height:140px;border-radius:50%;
+      background: radial-gradient(ellipse at center, rgba(255,220,140,0.28) 0%, rgba(255,160,40,0.12) 28%, rgba(255,90,10,0.06) 48%, transparent 60%);
+      filter: blur(16px); opacity:0; transition:opacity .16s ease; pointer-events:none;
     }
-    .settings-panel {
-      position: absolute;
-      top: 10%;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 90%;
-      max-width: 450px;
-      background: #fff;
-      padding: 14px;
-      border-radius: 10px;
-      display: none;
-      z-index: 40;
-      max-height: 80vh;
-      overflow-y: auto;
-    }
-    .settings-panel input { width:100%; margin:6px 0 10px; }
-    .settings-panel .panel-btns { display:flex; gap:8px; margin-top:6px; flex-wrap:wrap; }
-    .settings-panel button { padding:8px 12px; border-radius:6px; border:1px solid #ccc; background:#fff; cursor:pointer; }
-    .close-btn {
-      position: absolute;
-      top: 6px;
-      right: 10px;
-      cursor: pointer;
-      font-size: 20px;
-      user-select: none;
+    .celebration-banner.show .celebration-rays{opacity:1; animation:raysPulse 1s ease-out;}
+    @keyframes raysPulse{0%{transform:translate(-50%,-55%) scale(.92);opacity:.28}50%{transform:translate(-50%,-55%) scale(1);opacity:.95}100%{transform:translate(-50%,-55%) scale(1.02);opacity:0}}
+
+    @media (max-width:600px){
+      :root{--ticker-height:36px}
+      .ticker-track{font-size:15px;line-height:var(--ticker-height)}
+      .celebration-text{font-size:14px}
+      .celebration-rays{width:300px;height:120px;filter:blur(12px)}
+      .overlay-card{min-height:160px;padding:16px 20px}
+      .timer{font-size:16px;padding:6px 10px;min-width:70px}
     }
 
-    /* ---------- NEW: Match Simulation (under LIVE) - glowing orange ---------- */
-    .match-simulation {
-      position: absolute;
-      right: 20px;
-      text-transform: uppercase;
-      font-weight: 900;
-      letter-spacing: 1px;
-      z-index: 20;
-      user-select: none;
-      /* orange gradient + clipped text + animated glow */
-      background: linear-gradient(90deg,#ffb347,#ff6a00,#ffb347);
-      background-size: 200% auto;
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-      text-shadow: 0 0 6px rgba(255,160,0,0.6), 0 0 12px rgba(255,110,0,0.45);
-      animation: matchGlow 2.6s linear infinite;
+    /* Hide settings gear in landscape on small devices (mobile landscape) */
+    @media screen and (orientation: landscape) and (max-width: 900px){
+      .settings-btn { display: none !important; }
     }
-    @keyframes matchGlow {
-      0% {
-        text-shadow: 0 0 6px rgba(255,160,0,0.6), 0 0 12px rgba(255,110,0,0.45);
-      }
-      50% {
-        text-shadow: 0 0 14px rgba(255,200,0,0.95), 0 0 28px rgba(255,140,0,0.8);
-      }
-      100% {
-        text-shadow: 0 0 6px rgba(255,160,0,0.6), 0 0 12px rgba(255,110,0,0.45);
-      }
-    }
-
-    /* ---------- NEW: Bottom Ticker ---------- */
-    .ticker {
-      position: absolute;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      height: 44px;
-      background: linear-gradient(to bottom, var(--ticker-red1), var(--ticker-red2));
-      color: #fff;
-      overflow: hidden;
-      z-index: 25;
-      border-top: 1px solid rgba(255,255,255,0.2);
-      pointer-events: none; /* so it doesn't block clicks */
-    }
-    /* track will be moved by JS (no CSS animation) */
-    .ticker-track {
-      position: absolute;
-      top: 0;
-      left: 0;
-      white-space: nowrap;
-      will-change: transform;
-      transform: translateX(0);
-      text-transform: uppercase;
-      font-weight: 900;
-      letter-spacing: 1px;
-      line-height: 44px;
-      text-shadow: 0 0 6px rgba(255,255,255,0.7), 0 0 14px rgba(255,255,255,0.45);
-      font-size: 20px;
-      padding: 0 8px;
-      display: inline-block;
-    }
-    .ticker-track .sep { margin: 0 20px; opacity: 0.9; }
-
-    @media (max-width: 600px) {
-      .ticker { height: 36px; }
-      .ticker-track { line-height: 36px; font-size: 16px; }
-    }
-  </style>
-</head>
+  </style></head>
 <body>
   <div class="container">
     <!-- Video -->
@@ -312,315 +215,428 @@
       <video id="gameVideo" autoplay loop muted playsinline>
         <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
       </video>
-    </div>
+    </div><!-- LIVE Badge & Match Simulation -->
+<div class="live-badge" id="liveBadge"><div class="live-dot"></div>LIVE</div>
+<div class="match-simulation" id="matchSimText">Match Simulation</div>
 
-    <!-- Live badge & Score bar -->
-    <div class="live-badge" id="liveBadge"><div class="live-dot"></div>LIVE</div>
+<!-- Score bar -->
+<div class="score-bar">
+  <img id="logoA" src="https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg" class="team-logo" />
+  <div class="team-label" id="teamALabel">HOME TEAM</div>
+  <div class="score"><span id="scoreA">0</span></div>
+  <div class="timer" id="timer">00:00</div>
+  <div class="score"><span id="scoreB">0</span></div>
+  <div class="team-label" id="teamBLabel">AWAY TEAM</div>
+  <img id="logoB" src="https://upload.wikimedia.org/wikipedia/en/4/47/FC_Barcelona_%28crest%29.svg" class="team-logo" />
+</div>
 
-    <!-- NEW: Fixed text under LIVE -->
-    <div class="match-simulation" id="matchSimText">Match Simulation</div>
-
-    <div class="score-bar">
-      <img id="logoA" src="https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg" class="team-logo" />
-      <div class="team-label" id="teamALabel">HOME TEAM</div>
-      <div class="score"><span id="scoreA">0</span></div>
-      <div class="timer" id="timer">00:00</div>
-      <div class="score"><span id="scoreB">0</span></div>
-      <div class="team-label" id="teamBLabel">AWAY TEAM</div>
-      <img id="logoB" src="https://upload.wikimedia.org/wikipedia/en/4/47/FC_Barcelona_%28crest%29.svg" class="team-logo" />
-    </div>
-
-    <!-- Overlay -->
-    <div class="overlay-screen" id="overlayScreen">
-      <div class="overlay-card">
-        <h2 id="overlayTitle">HALF TIME</h2>
-        <div class="overlay-teams">
-          <div class="overlay-team">
-            <img id="overlayLogoA" src="">
-            <div id="overlayNameA"></div>
-          </div>
-          <div class="overlay-score" id="overlayScore"></div>
-          <div class="overlay-team">
-            <img id="overlayLogoB" src="">
-            <div id="overlayNameB"></div>
-          </div>
-        </div>
+<!-- Overlay -->
+<div class="overlay-screen" id="overlayScreen">
+  <div class="overlay-card">
+    <h2 id="overlayTitle">HALF TIME</h2>
+    <div class="overlay-teams">
+      <div class="overlay-team">
+        <img id="overlayLogoA" src="">
+        <div id="overlayNameA"></div>
       </div>
-    </div>
-
-    <!-- Music Player -->
-    <audio id="bgMusic" loop></audio>
-
-    <!-- NEW: Bottom Ticker -->
-    <div class="ticker" id="ticker">
-      <div class="ticker-track" id="tickerTrack"></div>
-    </div>
-
-    <!-- Settings -->
-    <div class="settings-btn" id="openSettingsBtn">⚙️</div>
-    <div class="settings-panel" id="settingsPanel">
-      <div class="close-btn" id="closeSettingsBtn">×</div>
-      <h3>Settings</h3>
-      <label>Team A Name</label><input type="text" id="inputTeamA" />
-      <label>Team B Name</label><input type="text" id="inputTeamB" />
-      <label>Team A Logo</label><input type="file" id="inputLogoA" accept="image/*" />
-      <label>Team B Logo</label><input type="file" id="inputLogoB" accept="image/*" />
-      <label>Gameplay Video</label><input type="file" id="inputVideo" accept="video/*" />
-      <label>Background Music</label><input type="file" id="inputMusic" accept="audio/*" />
-      <label>Overlay Background (Half + Full)</label><input type="file" id="inputOverlayBg" accept="image/*" />
-      <label>Set Timer Start (minutes)</label><input type="number" id="inputTimerMin" min="0" value="0" />
-      <label>Set Timer Start (seconds)</label><input type="number" id="inputTimerSec" min="0" max="59" value="0" />
-
-      <!-- NEW: Ticker Text -->
-      <label>Bottom Ticker Text</label>
-      <input type="text" id="inputTickerText" placeholder="e.g., BREAKING NEWS • TRANSFER UPDATES • MATCH BUILD-UP" />
-
-      <div class="panel-btns">
-        <button id="applyBtn">Apply</button>
-        <button id="showComingBtn">Show Coming Soon</button>
+      <div class="overlay-score" id="overlayScore"></div>
+      <div class="overlay-team">
+        <img id="overlayLogoB" src="">
+        <div id="overlayNameB"></div>
       </div>
     </div>
   </div>
+</div>
 
-  <script>
-    // Scores & timer
+<!-- Background music (optional) -->
+<audio id="bgMusic" loop></audio>
+
+<!-- Bottom ticker -->
+<div class="ticker" id="ticker">
+  <div class="ticker-track" id="tickerTrack"></div>
+
+  <!-- Celebration banner sits over ticker center -->
+  <div class="celebration-banner" id="celebrationBanner" aria-hidden="true">
+    <div class="celebration-rays" id="celebrationRays"></div>
+    <div class="celebration-inner">
+      <div class="celebration-text" id="celebrationText">TEAM scores a GOAL!</div>
+    </div>
+  </div>
+</div>
+
+<!-- Settings -->
+<div class="settings-btn" id="openSettingsBtn">⚙️</div>
+<div class="settings-panel" id="settingsPanel">
+  <div class="close-btn" id="closeSettingsBtn">×</div>
+  <h3>Settings</h3>
+  <label>Team A Name</label><input type="text" id="inputTeamA" />
+  <label>Team B Name</label><input type="text" id="inputTeamB" />
+  <label>Team A Logo</label><input type="file" id="inputLogoA" accept="image/*" />
+  <label>Team B Logo</label><input type="file" id="inputLogoB" accept="image/*" />
+  <label>Gameplay Video</label><input type="file" id="inputVideo" accept="video/*" />
+  <label>Background Music</label><input type="file" id="inputMusic" accept="audio/*" />
+  <label>Goal Celebration Music</label><input type="file" id="inputGoalMusic" accept="audio/*" />
+  <label>Overlay Background (Half + Full)</label><input type="file" id="inputOverlayBg" accept="image/*" />
+  <label>Set Timer Start (minutes)</label><input type="number" id="inputTimerMin" min="0" value="0" />
+  <label>Set Timer Start (seconds)</label><input type="number" id="inputTimerSec" min="0" max="59" value="0" />
+  <label>Bottom Ticker Text</label>
+  <input type="text" id="inputTickerText" placeholder="e.g., Pakistan vs India Live • Stay tuned" />
+  <div class="panel-btns">
+    <button id="applyBtn">Apply</button>
+    <button id="showComingBtn">Show Coming Soon</button>
+  </div>
+</div>
+
+  </div>  <script>
+    /*********************** Core state & elements *************************/
     let scoreA=0, scoreB=0, timer=0, interval=null;
     let overlayBg=null;
+    let matchState='idle';
 
-    // state machine for match flow: 'idle' -> 'coming' -> 'firstHalf' -> 'halfTime' -> 'secondHalf' -> 'fullTime'
-    let matchState = 'idle';
+    // NEW: goal music state
+    let goalMusicUrl = null; // URL created from uploaded goal sound
+    let currentGoalAudio = null; // currently playing goal Audio instance
+    let goalAudioTimer = null;    // timeout to stop the goal sound after 3s
 
-    const a=document.getElementById("scoreA"),
-          b=document.getElementById("scoreB"),
-          t=document.getElementById("timer"),
-          overlay=document.getElementById("overlayScreen"),
-          logoA=document.getElementById("logoA"),
-          logoB=document.getElementById("logoB");
+    const elScoreA = document.getElementById('scoreA'),
+          elScoreB = document.getElementById('scoreB'),
+          elTimer  = document.getElementById('timer'),
+          overlay  = document.getElementById('overlayScreen'),
+          logoA    = document.getElementById('logoA'),
+          logoB    = document.getElementById('logoB');
 
-    a.onclick=()=>{ scoreA++; a.textContent=scoreA; };
-    b.onclick=()=>{ scoreB++; b.textContent=scoreB; };
+    // Score clicks -> update and celebration
+    elScoreA.onclick = ()=> { scoreA++; elScoreA.textContent = scoreA; triggerCelebration('home'); };
+    elScoreB.onclick = ()=> { scoreB++; elScoreB.textContent = scoreB; triggerCelebration('away'); };
 
-    // Timer click handler - stateful
-    t.onclick = () => {
-      // clear any running match timer when entering overlay states
-      if (matchState === 'idle') {
-        // 1st click -> show Coming Soon (persist until user hides)
-        showComingSoon(overlayBg);
-        matchState = 'coming';
-        if(interval){ clearInterval(interval); interval = null; }
-      }
-      else if (matchState === 'coming') {
-        // user clicked again -> hide Coming Soon and START first half timer
+    // Timer click state machine (unchanged behavior)
+    elTimer.onclick = () => {
+      if(matchState === 'idle'){
+        showComingSoon(overlayBg); matchState = 'coming';
+        if(interval){ clearInterval(interval); interval=null; }
+      } else if(matchState === 'coming'){
         overlay.classList.remove('show');
-        // start timer
         interval = setInterval(()=>{
-          timer++;
-          t.textContent=`${String(Math.floor(timer/60)).padStart(2,"0")}:${String(timer%60).padStart(2,"0")}`;
+          timer++; elTimer.textContent = `${String(Math.floor(timer/60)).padStart(2,'0')}:${String(timer%60).padStart(2,'0')}`;
         },1000);
         matchState = 'firstHalf';
-      }
-      else if (matchState === 'firstHalf') {
-        // show HALF TIME overlay & pause timer
-        if(interval){ clearInterval(interval); interval = null; }
-        showOverlay("HALF TIME", overlayBg, false);
+      } else if(matchState === 'firstHalf'){
+        if(interval){ clearInterval(interval); interval=null; }
+        showOverlay('HALF TIME', overlayBg, false);
         matchState = 'halfTime';
-      }
-      else if (matchState === 'halfTime') {
-        // hide half-time overlay and start/resume 2nd half timer
+      } else if(matchState === 'halfTime'){
         overlay.classList.remove('show');
         interval = setInterval(()=>{
-          timer++;
-          t.textContent=`${String(Math.floor(timer/60)).padStart(2,"0")}:${String(timer%60).padStart(2,"0")}`;
+          timer++; elTimer.textContent = `${String(Math.floor(timer/60)).padStart(2,'0')}:${String(timer%60).padStart(2,'0')}`;
         },1000);
         matchState = 'secondHalf';
-      }
-      else if (matchState === 'secondHalf') {
-        // show FULL TIME overlay & stop timer
-        if(interval){ clearInterval(interval); interval = null; }
-        showOverlay("FULL TIME", overlayBg, false);
+      } else if(matchState === 'secondHalf'){
+        if(interval){ clearInterval(interval); interval=null; }
+        showOverlay('FULL TIME', overlayBg, false);
         matchState = 'fullTime';
-      }
-      else if (matchState === 'fullTime') {
-        // Reset everything
-        if(interval){ clearInterval(interval); interval = null; }
+      } else if(matchState === 'fullTime'){
+        if(interval){ clearInterval(interval); interval=null; }
         matchState = 'idle';
-        timer = 0;
-        scoreA = 0;
-        scoreB = 0;
-        a.textContent = 0;
-        b.textContent = 0;
-        t.textContent = "00:00";
+        timer=0; scoreA=0; scoreB=0;
+        elScoreA.textContent = 0; elScoreB.textContent = 0; elTimer.textContent = '00:00';
         overlay.classList.remove('show');
       }
     };
 
-    // generalized overlay function: isVS true -> show "VS" in center (for Coming Soon)
-    function showOverlay(title, bg, isVS = false){
-      const titleEl = document.getElementById("overlayTitle");
-      const logoAEl = document.getElementById("overlayLogoA");
-      const logoBEl = document.getElementById("overlayLogoB");
-      const nameAEl = document.getElementById("overlayNameA");
-      const nameBEl = document.getElementById("overlayNameB");
-      const scoreEl = document.getElementById("overlayScore");
+    function showOverlay(title,bg,isVS=false){
+      document.getElementById('overlayTitle').textContent = title;
+      document.getElementById('overlayLogoA').src = logoA.src;
+      document.getElementById('overlayLogoB').src = logoB.src;
+      document.getElementById('overlayNameA').textContent = document.getElementById('teamALabel').textContent;
+      document.getElementById('overlayNameB').textContent = document.getElementById('teamBLabel').textContent;
+      document.getElementById('overlayScore').textContent = isVS ? 'VS' : `${scoreA} - ${scoreB}`;
+      overlay.classList.add('show');
+      overlay.style.background = bg ? `url(${bg}) center/cover no-repeat` : 'rgba(0,0,0,0.7)';
+    }
+    function showComingSoon(bg){ showOverlay('COMING SOON', bg, true); matchState='coming'; }
 
-      titleEl.textContent = title;
-      logoAEl.src = logoA.src;
-      logoBEl.src = logoB.src;
-      nameAEl.textContent = document.getElementById("teamALabel").textContent;
-      nameBEl.textContent = document.getElementById("teamBLabel").textContent;
+    /************************ Settings panel ************************/
+    const openBtn=document.getElementById('openSettingsBtn'),
+          closeBtn=document.getElementById('closeSettingsBtn'),
+          panel=document.getElementById('settingsPanel'),
+          showComingBtn=document.getElementById('showComingBtn');
 
-      if(isVS){
-        scoreEl.textContent = "VS";
-      } else {
-        scoreEl.textContent = `${scoreA} - ${scoreB}`;
-      }
+    openBtn.onclick = ()=> panel.style.display = 'block';
+    closeBtn.onclick = ()=> panel.style.display = 'none';
+    showComingBtn.onclick = ()=> showComingSoon(overlayBg);
 
-      overlay.classList.add("show");
-      overlay.style.background = bg ? `url(${bg}) center/cover no-repeat` : "rgba(0,0,0,0.7)";
+    /*********************** Title Case Helper *************************/
+    function toTitleCase(input){
+      if(!input) return '';
+      // normalize bullets and similar separators so they are preserved
+      let s = String(input).trim();
+      s = s.replace(/\u2022/g, ' • '); // bullet
+      s = s.replace(/\s+/g, ' ');
+      // split by spaces and title-case each token while preserving punctuation
+      return s.split(' ').map(token=>{
+        if(token === '•') return '•';
+        // preserve tokens that are pure punctuation
+        if(/^[^A-Za-z0-9]+$/.test(token)) return token;
+        const m = token.match(/^([^A-Za-z0-9]*)([A-Za-z0-9]+(?:'[A-Za-z0-9]+)?)([^A-Za-z0-9]*)$/);
+        if(!m) return token.charAt(0).toUpperCase() + token.slice(1).toLowerCase();
+        const prefix = m[1] || '';
+        const core   = m[2] || '';
+        const suffix = m[3] || '';
+        const coreTitle = core.charAt(0).toUpperCase() + core.slice(1).toLowerCase();
+        return prefix + coreTitle + suffix;
+      }).join(' ');
     }
 
-    // Coming Soon helper: shows overlay and sets state to 'coming'
-    function showComingSoon(bg){
-      showOverlay("COMING SOON", bg, true);
-      matchState = 'coming';
-      // do NOT auto-hide and do NOT start timer — wait for user to click timer again
-    }
-
-    // ---------- Settings ----------
-    const openBtn=document.getElementById("openSettingsBtn"),
-          closeBtn=document.getElementById("closeSettingsBtn"),
-          panel=document.getElementById("settingsPanel"),
-          showComingBtn=document.getElementById("showComingBtn");
-    openBtn.onclick=()=>panel.style.display="block";
-    closeBtn.onclick=()=>panel.style.display="none";
-    // settings "Show Coming Soon" button should mimic first-click behavior
-    showComingBtn.onclick=()=> showComingSoon(overlayBg);
-
-    document.getElementById("applyBtn").onclick=()=>{
-      document.getElementById("teamALabel").textContent =
-        document.getElementById("inputTeamA").value || "HOME TEAM";
-      document.getElementById("teamBLabel").textContent =
-        document.getElementById("inputTeamB").value || "AWAY TEAM";
-
-      const logoAFile=document.getElementById("inputLogoA").files[0];
-      if(logoAFile) logoA.src=URL.createObjectURL(logoAFile);
-
-      const logoBFile=document.getElementById("inputLogoB").files[0];
-      if(logoBFile) logoB.src=URL.createObjectURL(logoBFile);
-
-      const vid=document.getElementById("inputVideo").files[0];
-      if(vid) document.getElementById("gameVideo").src=URL.createObjectURL(vid);
-
-      const music=document.getElementById("inputMusic").files[0];
-      if(music) {
-        const audio=document.getElementById("bgMusic");
-        audio.src=URL.createObjectURL(music);
-        audio.muted=false;
-        audio.play().catch(err=>console.log("Autoplay blocked:",err));
-      }
-
-      const overlayFile=document.getElementById("inputOverlayBg").files[0];
-      if(overlayFile) overlayBg=URL.createObjectURL(overlayFile);
-
-      const min=parseInt(document.getElementById("inputTimerMin").value)||0;
-      const sec=parseInt(document.getElementById("inputTimerSec").value)||0;
-      timer=min*60+sec;
-      t.textContent=`${String(min).padStart(2,"0")}:${String(sec).padStart(2,"0")}`;
-
-      // Update ticker text from settings
-      const tickerInput = document.getElementById("inputTickerText").value.trim();
-      if (tickerInput) setTickerText(tickerInput);
-
-      // Reposition "Match Simulation" in case layout changed
-      positionMatchSimulation();
-
-      panel.style.display="none";
-    };
-
-    /* ---------- Match Simulation placement under LIVE ---------- */
-    function positionMatchSimulation(){
-      const live = document.getElementById('liveBadge');
-      const sim  = document.getElementById('matchSimText');
-      if(!live || !sim) return;
-
-      const cs = getComputedStyle(live);
-      const liveTop = parseFloat(cs.top) || 0;
-      const h = live.offsetHeight; // live badge height
-
-      // Gap equal to live badge height -> top = liveTop + h (bottom) + h (gap)
-      sim.style.top = (liveTop + h + h) + 'px';
-
-      // Make text height & size visually tied to LIVE badge height
-      sim.style.height = h + 'px';
-      sim.style.lineHeight = h + 'px';
-      sim.style.fontSize = Math.max(12, Math.round(h * 0.60)) + 'px';
-    }
-
-    /* ---------- Bottom Ticker JS Loop (single sentence -> restart immediately when ends) ---------- */
+    /************************* Continuous Gapless Ticker *************************/
     const ticker = document.getElementById('ticker');
     const track  = document.getElementById('tickerTrack');
-    let tickerAnimId = null;
-    let tickerDurationSec = 30; // SPEED DOUBLED -> now faster (30s)
+    let rafId = null;
+    let xPos = 0;
+    let phraseWidth = 0;
+    let currentText = '';
+    // FASTER ticker as requested
+    let tickerDurationSec = 18;
 
-    // start animation loop using rAF for precise restart behavior
-    function startTickerLoop(durationSec = tickerDurationSec){
-      cancelTickerLoop();
-      if(!ticker || !track) return;
+    function buildTickerItems(display){
+      track.innerHTML = '';
+      currentText = display;
+      // add a sample to measure width
+      const sample = document.createElement('span');
+      sample.className = 'ticker-item';
+      sample.textContent = display;
+      track.appendChild(sample);
+      // measure and duplicate until track width > container + phrase
+      const phraseW = sample.offsetWidth || 1;
+      const containerW = ticker.offsetWidth || window.innerWidth || 1;
+      let totalW = 0;
+      let safety = 0;
+      while (totalW < containerW + phraseW && safety < 200){
+        const s = document.createElement('span');
+        s.className = 'ticker-item';
+        s.textContent = display;
+        track.appendChild(s);
+        totalW += s.offsetWidth;
+        safety++;
+      }
+      // ensure at least 2 copies
+      if(track.children.length === 1){
+        const extra = document.createElement('span');
+        extra.className = 'ticker-item';
+        extra.textContent = display;
+        track.appendChild(extra);
+      }
+      track.style.transform = 'translateX(0px)';
+      xPos = 0;
+    }
 
-      const containerW = ticker.offsetWidth;
-      const textW = Math.max(1, track.scrollWidth);
-      let x = containerW;
-      const totalDistance = containerW + textW;
-      const speed = totalDistance / Math.max(0.1, durationSec); // px per second
-
+    function startTicker(){
+      cancelTicker();
+      if(!track || !currentText) return;
+      const first = track.querySelector('.ticker-item');
+      if(!first) return;
+      phraseWidth = first.offsetWidth || 1;
+      xPos = (xPos % phraseWidth);
+      const speed = phraseWidth / Math.max(0.001, tickerDurationSec);
       let lastTs = null;
       function step(ts){
         if(!lastTs) lastTs = ts;
         const delta = (ts - lastTs)/1000;
         lastTs = ts;
-        x -= speed * delta;
-        if (x <= -textW) {
-          x = containerW; // immediate restart from right
-        }
-        track.style.transform = `translateX(${Math.round(x)}px)`;
-        tickerAnimId = requestAnimationFrame(step);
+        xPos -= speed * delta;
+        while(xPos <= -phraseWidth) xPos += phraseWidth;
+        track.style.transform = `translateX(${Math.round(xPos)}px)`;
+        rafId = requestAnimationFrame(step);
       }
-      tickerAnimId = requestAnimationFrame(step);
+      rafId = requestAnimationFrame(step);
     }
-    function cancelTickerLoop(){
-      if(tickerAnimId){ cancelAnimationFrame(tickerAnimId); tickerAnimId = null; }
-    }
+    function cancelTicker(){ if(rafId){ cancelAnimationFrame(rafId); rafId = null; } }
 
     function setTickerText(text){
-      const clean = (text || '').toUpperCase().trim();
-      const display = clean || 'BREAKING NEWS • MATCH UPDATES • TRANSFER ALERTS';
-      // single sentence
-      track.innerHTML = display;
-      // allow DOM update then start
-      setTimeout(()=> startTickerLoop(tickerDurationSec), 20);
+      const raw = (!text || String(text).trim() === '') ? 'BREAKING NEWS • MATCH UPDATES • TRANSFER ALERTS' : String(text);
+      // Convert to Title Case before displaying
+      const display = toTitleCase(raw);
+      buildTickerItems(display);
+      // small delay to let browser measure
+      setTimeout(()=> startTicker(), 30);
     }
 
-    // restart on resize so widths recalc
-    let resizeTimer = null;
     window.addEventListener('resize', ()=>{
       positionMatchSimulation();
-      if(resizeTimer) clearTimeout(resizeTimer);
-      resizeTimer = setTimeout(()=> {
-        startTickerLoop(tickerDurationSec);
-      }, 120);
+      setTimeout(()=> setTickerText(currentText), 120);
+    });
+    document.addEventListener('visibilitychange', ()=>{
+      if(document.hidden) cancelTicker(); else startTicker();
     });
 
-    // Initialize after DOM ready
+    /************************ Celebration Banner Logic (5s + animation) ************************/
+    const celebrationBanner = document.getElementById('celebrationBanner');
+    const celebrationText = document.getElementById('celebrationText');
+    const trackEl = document.getElementById('tickerTrack');
+    let celebrationTimeout = null;
+
+    function buildCelebrationMessage(side){
+      const homeName = document.getElementById('teamALabel').textContent || 'HOME TEAM';
+      const awayName = document.getElementById('teamBLabel').textContent || 'AWAY TEAM';
+      const templates = [
+        '{TEAM} scores a GOAL!',
+        'GOAL! {TEAM} finds the back of the net!',
+        '{TEAM} hits the net!',
+        'GOOOAL! {TEAM} takes the lead!'
+      ];
+      const idx = Math.floor(Math.random() * templates.length);
+      const team = (side === 'home') ? homeName : awayName;
+      return templates[idx].replace('{TEAM}', team);
+    }
+
+    function showCelebrationFor(side){
+      // compose message and keep it broadcast-friendly (Title case the team but overall uppercase for broadcast look)
+      let msg = buildCelebrationMessage(side);
+
+      // Normalize team words inside message to Title Case but leave the rest as originally punctuated.
+      // We'll transform the entire sentence to "broadcast-friendly" - uppercase visually handled by CSS.
+      // But keep team name nicer: replace team occurrence(s) with Title Cased variant
+      const homeName = document.getElementById('teamALabel').textContent || 'HOME TEAM';
+      const awayName = document.getElementById('teamBLabel').textContent || 'AWAY TEAM';
+      const team = (side === 'home') ? homeName : awayName;
+      const teamTitle = toTitleCase(team);
+
+      // replace team occurrences (case-insensitive)
+      msg = msg.replace(new RegExp(team, 'ig'), teamTitle);
+
+      celebrationText.textContent = msg;
+
+      // hide & pause ticker visual
+      cancelTicker();
+      trackEl.style.visibility = 'hidden';
+
+      // show banner with animation
+      celebrationBanner.classList.add('show');
+      celebrationBanner.setAttribute('aria-hidden','false');
+
+      // reset timer if running
+      if(celebrationTimeout) clearTimeout(celebrationTimeout);
+
+      // show for 5 seconds, then hide and resume ticker
+      celebrationTimeout = setTimeout(()=>{
+        celebrationBanner.classList.remove('show');
+        celebrationBanner.setAttribute('aria-hidden','true');
+        // short delay to allow exit animation then resume
+        setTimeout(()=>{
+          trackEl.style.visibility = 'visible';
+          startTicker();
+        }, 160);
+        celebrationTimeout = null;
+      }, 5000);
+    }
+
+    // external trigger to handle a goal (used by score buttons)
+    function triggerCelebration(side){
+      showCelebrationFor(side);
+
+      // Play goal sound for 3 seconds (if provided)
+      if(goalMusicUrl){
+        try{
+          // stop previous if running
+          if(currentGoalAudio){
+            currentGoalAudio.pause();
+            currentGoalAudio.currentTime = 0;
+            currentGoalAudio = null;
+          }
+          if(goalAudioTimer){ clearTimeout(goalAudioTimer); goalAudioTimer = null; }
+
+          const gAudio = new Audio(goalMusicUrl);
+          gAudio.currentTime = 0;
+          gAudio.play().catch(()=>{});
+          currentGoalAudio = gAudio;
+
+          goalAudioTimer = setTimeout(()=>{
+            if(currentGoalAudio){ try{ currentGoalAudio.pause(); currentGoalAudio.currentTime = 0; }catch(e){}
+              currentGoalAudio = null;
+            }
+            goalAudioTimer = null;
+          }, 3000);
+        }catch(e){ /* ignore audio errors */ }
+      }
+
+      // small score glow pulse
+      document.querySelectorAll('.score span').forEach(el=>{
+        el.style.transition='text-shadow 260ms ease';
+        el.style.textShadow='0 0 18px rgba(255,255,255,.95)';
+        setTimeout(()=> el.style.textShadow = '', 800);
+      });
+    }
+
+    /************************ Initialize & Settings Apply ************************/
+    document.getElementById('applyBtn').onclick = ()=>{
+      document.getElementById('teamALabel').textContent = document.getElementById('inputTeamA').value || 'HOME TEAM';
+      document.getElementById('teamBLabel').textContent = document.getElementById('inputTeamB').value || 'AWAY TEAM';
+
+      const logoAFile = document.getElementById('inputLogoA').files[0];
+      if(logoAFile) logoA.src = URL.createObjectURL(logoAFile);
+      const logoBFile = document.getElementById('inputLogoB').files[0];
+      if(logoBFile) logoB.src = URL.createObjectURL(logoBFile);
+
+      const vid=document.getElementById('inputVideo').files[0];
+      if(vid) document.getElementById('gameVideo').src = URL.createObjectURL(vid);
+
+      const music=document.getElementById('inputMusic').files[0];
+      if(music){
+        const audio=document.getElementById('bgMusic');
+        audio.src = URL.createObjectURL(music);
+        audio.muted = false;
+        audio.play().catch(()=>{});
+      }
+
+      // Goal music file (new)
+      const goalFile = document.getElementById('inputGoalMusic').files[0];
+      if(goalFile) goalMusicUrl = URL.createObjectURL(goalFile);
+
+      const overlayFile = document.getElementById('inputOverlayBg').files[0];
+      if(overlayFile) overlayBg = URL.createObjectURL(overlayFile);
+
+      const min = parseInt(document.getElementById('inputTimerMin').value) || 0;
+      const sec = parseInt(document.getElementById('inputTimerSec').value) || 0;
+      timer = min*60 + sec;
+      elTimer.textContent = `${String(min).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+
+      const tickerInput = document.getElementById('inputTickerText').value;
+      if(tickerInput !== undefined) setTickerText(tickerInput);
+
+      positionMatchSimulation();
+      panel.style.display = 'none';
+    };
+
+    const openSettingsBtn = document.getElementById('openSettingsBtn');
+    openSettingsBtn.onclick = () => { panel.style.display = 'block'; };
+
+    // helper to position match simulation text below live badge
+    function positionMatchSimulation(){
+      const live = document.getElementById('liveBadge');
+      const sim = document.getElementById('matchSimText');
+      if(!live || !sim) return;
+      const cs = getComputedStyle(live);
+      const liveTop = parseFloat(cs.top) || 0;
+      const h = live.offsetHeight;
+      sim.style.top = (liveTop + h + h) + 'px';
+      sim.style.height = h + 'px';
+      sim.style.lineHeight = h + 'px';
+      sim.style.fontSize = Math.max(12, Math.round(h * 0.60)) + 'px';
+    }
+
+    /************************ Initialize ************************/
     window.addEventListener('load', ()=>{
       positionMatchSimulation();
       setTickerText('BREAKING NEWS • LIVE COMMENTARY • MATCH BUILD-UP');
     });
 
-    // pause/resume on visibility change to save CPU
-    document.addEventListener('visibilitychange', ()=>{
-      if(document.hidden) cancelTickerLoop();
-      else startTickerLoop(tickerDurationSec);
+    // cleanup before unload
+    window.addEventListener('beforeunload', ()=>{
+      cancelTicker();
+      if(celebrationTimeout) clearTimeout(celebrationTimeout);
+      if(goalAudioTimer) clearTimeout(goalAudioTimer);
+      if(currentGoalAudio){ try{ currentGoalAudio.pause(); currentGoalAudio.currentTime = 0; }catch(e){}
+        currentGoalAudio = null;
+      }
     });
-  </script>
-</body>
+  </script></body>
 </html>
